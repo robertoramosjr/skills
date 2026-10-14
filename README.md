@@ -1,0 +1,22 @@
+# skills
+
+Skills do Claude Code do Roberto (Turbomole, VASP, CP2K). Cada pasta é uma skill (`SKILL.md` + `references/`).
+
+| Skill | Quando aciona |
+|---|---|
+| `turbomole-pipeline` | começar/retomar/depurar estudo em TURBOMOLE (DFT, TD-DFT, IR, DOS, funil de confôrmeros, pKa/COSMO) |
+| `vasp-pipeline` | cálculos VASP PAW-PBE (convergência 2×/1.125×ENMAX, slabs, defeitos, datasets ML) |
+| `cp2k-pipeline` | cálculos CP2K (CUTOFF/REL_CUTOFF 2D, k-mesh, CELL_OPT, bandas, PDOS, slabs, híbridos) |
+
+## Instalação (por máquina)
+```bash
+git clone git@github.com:robertoramosjr/skills.git ~/skills
+mkdir -p ~/.claude/skills
+for d in ~/skills/*/; do ln -sfn "$d" ~/.claude/skills/$(basename "$d"); done
+```
+Atualizar: `git -C ~/skills pull`. Regra de sessão (também no `~/.claude/CLAUDE.md`): `git pull` neste repo no início e commit+push no fim, como no cofre.
+
+## Convenções
+- Corpo do `SKILL.md` curto (regras duras + fluxo + mapa); detalhe em `references/`, carregado só quando o passo exige.
+- Lições novas de erro real entram em `references/gotchas.md` (ou equivalente) da skill, com data.
+- Estado de projeto (status, jobs, decisões em andamento) **não** entra aqui: fica no cofre (`~/cofre/02_Memory/<codigo>/<material>.md`). A skill guarda método e armadilhas; o cofre guarda "onde estamos".
