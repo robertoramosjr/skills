@@ -14,6 +14,11 @@ git clone git@github.com:robertoramosjr/skills.git ~/skills
 mkdir -p ~/.claude/skills
 for d in ~/skills/*/; do ln -sfn "$d" ~/.claude/skills/$(basename "$d"); done
 ```
+CLAUDE.md global (versionado aqui em `global/CLAUDE.md`):
+```bash
+[ -e ~/.claude/CLAUDE.md ] && [ ! -L ~/.claude/CLAUDE.md ] && mv ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.bak
+ln -sfn ~/skills/global/CLAUDE.md ~/.claude/CLAUDE.md
+```
 Atualizar: `git -C ~/skills pull`. Regra de sessão (também no `~/.claude/CLAUDE.md`): `git pull` neste repo no início e commit+push no fim, como no cofre.
 
 ## Convenções
