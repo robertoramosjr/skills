@@ -7,6 +7,7 @@ Skills do Claude Code do Roberto (Turbomole, VASP, CP2K). Cada pasta é uma skil
 | `turbomole-pipeline` | começar/retomar/depurar estudo em TURBOMOLE (DFT, TD-DFT, IR, DOS, funil de confôrmeros, pKa/COSMO) |
 | `vasp-pipeline` | cálculos VASP PAW-PBE (convergência 2×/1.125×ENMAX, slabs, defeitos, datasets ML) |
 | `cp2k-pipeline` | cálculos CP2K (CUTOFF/REL_CUTOFF 2D, k-mesh, CELL_OPT, bandas, PDOS, slabs, híbridos) |
+| `cofre-sync` | atualizar o cofre ao fim de sessão, garantir pendências, aposentar projetos concluídos |
 
 ## Instalação (por máquina)
 ```bash
