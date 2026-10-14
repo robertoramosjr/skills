@@ -77,3 +77,11 @@ Conteúdo: [define](#define-e-input) · [Funcionais/TD-DFT](#funcionais-e-propri
 - `jobex -c 1500` para geometrias vindas de VASP/substituição atômica (o gradiente cai monotônico; só faltava iterar).
 - Sistemas de ~100 átomos: `aoforce` PBE ≈ 48 h; HSE06 estoura 3 d; PBE0 (RI-K) inviável (8–18 h/ciclo). Na coaraci pedir nó inteiro (48 núcleos) e retomar só do rabo (`job_resume_force_pop.sh`).
 - Cubo `fmt=cub` perde caroço de átomo pesado (Ni-PBE 331,88 vs 334,00 e⁻): cargas de Bader de metais não confiáveis nesse grid.
+
+## Vários cálculos no mesmo nó (coaraci, 2026-10-14)
+- **`TURBOTMPDIR=/tmp` com nomes FIXOS** (`diff_densmat`, `olddensmat`): 2+ `ridft` no mesmo nó se contaminam (um UHF morreu com `forrtl severe (67)` por arquivo escrito por outro; um RHF de mesmo tamanho poderia ler errado em silêncio). Fix: `TURBOTMPDIR` privado por diretório de cálculo. `NumForce` já zera `TURBOTMPDIR` nos workers, mas **não** no `ridft` de referência.
+- Estágios **idempotentes** (pular o que já foi validado por texto e é mais novo que `GEO_OPT_CONVERGED`; marcadores `.stages/{ALL_DONE,FAILED}`; `actual -r` e restaurar `control.pre_proper` no início) tornam fácil retomar após TIMEOUT. Quando o `aoforce` analítico não cabe em walltime: `NumForce -central` (retoma sozinho de `numforce/KraftWerk`). Dividir o nó entre cálculos com `taskset` em faixas disjuntas (3×16).
+
+## Bader: resolução do cubo (Ni HSE06, 2026-10-14)
+- m4/m5 é grid XC e **não** muda o cubo; espaçamento padrão de `$pointval fmt=cub` = 0,20 bohr (caixa = molécula ± ~3,5 bohr).
+- Referência 334 e⁻: 0,20 original → 330,39 (Ni +2,47); 0,20 com origem deslocada → 335,22 (Ni +0,20); 0,10 → 333,36 (Ni +1,72). **O erro não é sistemático**: depende de onde o grid cai no pico 1s do caroço (all-electron). Carga de Bader de metal nesse cubo não é confiável; se 0,05 não convergir, Mulliken/Löwdin/NBO ou Multiwfn (bacia com refinamento atômico). Coaraci não tinha `bader` instalado.
