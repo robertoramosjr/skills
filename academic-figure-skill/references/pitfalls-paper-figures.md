@@ -43,3 +43,12 @@ Lessons from real figure work (Paper 2 re-plot, 2026-10-15). Each entry: the tra
 ## 11. Where the figures live
 **Trap:** the project folder was outside the git repository the user linked, so pushing that repo did not show the figures.
 **Rule:** before promising a link, confirm which repository tracks the figure folder (`git -C <dir> rev-parse --show-toplevel`). Do not commit unrelated uncommitted work in that repo; commit only the figure files, or ask first.
+
+## 12. Figure text must match body text at print size (golden rule, 2026-10-15)
+**Trap:** figures designed at 8 pt and inserted at `\columnwidth` (86 mm) shrink to about 4 pt, far below the 10 pt body text.
+**Rule:** design each figure at the width it prints (178 mm for `figure*`, 86 mm for a single column), set labels, titles and legends to the body size (10 pt for revtex APS reprint), ticks 9 pt, and insert with `width=\textwidth` inside `figure*`. Check by compiling and rendering the page next to body text.
+**Do not** enlarge the page to make room: a single-column preprint template raises the body size, so the ratio gets worse. Keep the journal template.
+
+## 13. Compiling the paper (TeX toolchain)
+**Trap:** the system TeX Live 2018 mixed with 2025 packages failed on `siunitx` ("kernel too old") and on `chemgreek`.
+**Fix:** install a user-level TeX Live with `install-tl -no-interaction -profile` into `~/texlive/<year>` (no root), put its `bin/x86_64-linux` first in `PATH`, and keep only the packages missing from it in `~/texmf` (here `revtex4-2`, `mhchem`, `chemgreek`). Install from CTAN only; never run a downloaded `.ins` in its own folder.
