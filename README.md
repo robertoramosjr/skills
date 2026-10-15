@@ -8,6 +8,8 @@ Skills do Claude Code do Roberto (Turbomole, VASP, CP2K). Cada pasta é uma skil
 | `vasp-pipeline` | cálculos VASP PAW-PBE (convergência 2×/1.125×ENMAX, slabs, defeitos, datasets ML) |
 | `cp2k-pipeline` | cálculos CP2K (CUTOFF/REL_CUTOFF 2D, k-mesh, CELL_OPT, bandas, PDOS, slabs, híbridos) |
 | `cofre-sync` | atualizar o cofre ao fim de sessão, garantir pendências, aposentar projetos concluídos |
+| `research-paper-writing` | redigir/revisar Abstract, Intro, Method, Experiments; fluxo de parágrafos; auto-revisão adversarial (terceiros: Master-cai/Research-Paper-Writing-Skills @77e7c2c, MIT) |
+| `academic-figure-skill` | figuras científicas para Nature/Cell/Science (matplotlib/R, specs de revista, QA) (terceiros: TingxiYu/academic-figure-skill @1df9940; assets ~137 MB) |
 
 ## Instalação (por máquina)
 ```bash
