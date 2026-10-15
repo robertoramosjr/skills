@@ -1,8 +1,24 @@
 ---
 name: research-paper-writing
-description: Improve academic paper writing quality for ML/CV/NLP-style papers with clear section structure, paragraph flow, and reviewer-facing presentation. Use when drafting or revising Abstract, Introduction, Related Work, Method, Experiments, or Conclusion; polishing figures/tables; checking claim-support alignment; or performing self-review before submission.
+description: Improve academic paper writing quality with clear section structure, paragraph flow, and reviewer-facing presentation; for the user's computational chemistry/physics papers (Turbomole/VASP/CP2K, revtex) it enforces the user's style (combined Results and Discussion, every figure discussed in flowing prose, user's paragraphs preserved). Use when drafting or revising Abstract, Introduction, Related Work, Method, Experiments, or Conclusion; polishing figures/tables; checking claim-support alignment; or performing self-review before submission.
 ---
 # Research Paper Writing
+
+## User style first (overrides everything below)
+
+For the user's own papers (computational chemistry/physics, revtex; e.g. artepillin C Paper 1/2), **read
+`references/user-style-comp-chem.md` before writing** and follow it over the generic ML guidance in this file.
+Core points (rejected rewrite, 2026-10-15):
+- **"Results and Discussion" is one section**: present the data and discuss it in the same flowing paragraphs.
+  Never a separate Discussion section, never `\emph{Discussion.}` paragraphs.
+- **Discuss every figure**: introduce it, walk the panels with numbers (from the data files), interpret, give the
+  caveat, link to the next result.
+- **Formal, flowing prose** with connectives (Consequently, Furthermore, In this context, Nevertheless, ...);
+  hedged claims; no telegraphic sentences.
+- **Preserve the user's paragraphs** (Abstract/Introduction/Methods untouched unless asked); increment, do not
+  replace. Keep `\todo/\pending/\open` markers; contradictions with the data become `\todo{}` + a note in the chat.
+- The Output Contract below (outline, paragraph roles, checklists, claim-evidence map) goes **in the chat**, never
+  into the manuscript.
 
 ## Overview
 
@@ -54,6 +70,8 @@ Source reference for this check:
 ## Section Guides
 
 Load only the needed section file:
+
+- **User's comp-chem papers (load first, overrides the rest)**: `references/user-style-comp-chem.md`
 
 - Introduction: `references/introduction.md`
 - Abstract: `references/abstract.md`

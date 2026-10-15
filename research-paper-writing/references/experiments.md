@@ -1,5 +1,9 @@
 # Experiments Writing Guide
 
+> For the user's computational chemistry/physics papers, the "Experiments" section is **Results and Discussion**
+> (one section, data and discussion together). Follow `user-style-comp-chem.md`; use this file only for the
+> table-formatting rules below, adapted to revtex (`ruledtabular`, captions above tables).
+
 ## Goal
 
 Convince reviewers with complete evidence on effectiveness, causality, and practical value.
