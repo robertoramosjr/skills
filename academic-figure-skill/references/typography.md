@@ -16,8 +16,8 @@ mpl.rcParams.update({
     "ytick.labelsize": 7,
     "legend.fontsize": 8,
     "figure.titlesize": 9,
-    "axes.spines.top": False,
-    "axes.spines.right": False,
+    "axes.spines.top": True,     # closed frame: user preference 2026-10-15
+    "axes.spines.right": True,
     "axes.linewidth": 0.6,
     "xtick.direction": "out",
     "ytick.direction": "out",

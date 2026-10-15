@@ -39,8 +39,8 @@ ggsave("figure.pdf", width = 183, height = 120, units = "mm")
 
 ## Spines and Axes
 
-- Remove top and right spines by default (clean, minimal look)
-- Keep left and bottom spines
+- Closed frame by default: keep all four spines (user preference, 2026-10-15)
+- Do not remove top and right spines unless the user asks for an open L-shaped axis
 - Spine linewidth: 0.5-0.6 pt (thinner than data elements)
 - Tick direction: outward (`xtick.direction: out`, `ytick.direction: out`)
 - Gridlines: remove by default. If needed for reader guidance, use very light grey (`#E0E0E0`, `linewidth=0.3`, `alpha=0.5`)

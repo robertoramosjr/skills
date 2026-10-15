@@ -10,7 +10,7 @@ Academic Figure Skill generates publication-grade scientific figures for Nature/
 ## Design Principles
 
 **1. One figure, one core message.**
-CNS reviewers skim fast. A figure must convey its main conclusion in 3 seconds. Remove gridlines, borders, and legend entries that dilute the core message. Default to minimal, not maximal.
+CNS reviewers skim fast. A figure must convey its main conclusion in 3 seconds. Remove gridlines and legend entries that dilute the core message. Keep the closed frame (four spines) — user preference 2026-10-15. Default to minimal, not maximal.
 
 **2. Restrained color > abundant color.**
 Default palettes (matplotlib tab10, ggplot2 hue_pal, Excel colors) signal "not designed" instantly. Use 2-4 semantic main colors + 1 accent. See `references/color-palettes.md`.
@@ -448,7 +448,7 @@ Output: structured feedback with priority (must-fix vs. suggestion) and fix inst
 
 Flag these immediately when reviewing user code:
 - Default color palettes → offer semantic palette
-- Four-sided borders → offer clean left/bottom spine
+- Open L-shaped axes (only left/bottom spines) → offer the closed frame (four spines), the user's preference (2026-10-15)
 - Legend inside plot → offer outside/direct labeling
 - Screenshot-only export → offer vector PDF
 - Jet/rainbow colormap → offer perceptually uniform
