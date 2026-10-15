@@ -32,6 +32,23 @@ black      <- "#222222"
 
 ---
 
+## Origin default sequence (user preference, 2026-10-15)
+
+Use when the user asks for "paleta do Origin" or the figure is meant to match Origin output. Order = plot 1, 2, 3, … Black, red, blue and magenta are fixed by the user; the rest are approximations of Origin's default cycle, to be checked against Origin's colour dialog before submission.
+
+```python
+# Origin default sequence -- COPY VERBATIM when requested
+ORIGIN = ["#000000", "#FF0000", "#0000FF", "#FF00FF", "#008000", "#00FFFF", "#808000", "#800080"]
+```
+
+```r
+origin <- c("#000000", "#FF0000", "#0000FF", "#FF00FF", "#008000", "#00FFFF", "#808000", "#800080")
+```
+
+Rule: Origin colours are saturated, so keep line width ≤1.2 pt and use them only when the user asks; the default Nature/Cell/Science palette above stays the default. A paper-level palette rule (e.g. a fixed per-state colour in a project CLAUDE.md) overrides both.
+
+---
+
 ## Nature / Cell / Science Color Rules
 
 Academic Figure Skill uses a restrained journal-safe palette rather than default matplotlib, ggplot2, seaborn, Excel, Scanpy, or rainbow palettes. The target look is: high contrast, print-safe, colorblind-aware, and semantically assigned.
