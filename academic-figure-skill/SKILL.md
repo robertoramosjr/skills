@@ -29,6 +29,7 @@ Line art, scatter plots, bar charts → EPS (see rule below). Only true raster c
 - **Paleta "Origin" (quando pedida):** 1 preto, 2 vermelho, 3 azul, 4 magenta, … — ver `references/color-palettes.md` (seção Origin). Padrão continua sendo a paleta Nature/Cell/Science.
 - **Séries categóricas (ex.: N/A/B/D):** marcadores ligados por linha fina, em vez de pontos soltos.
 - **Legenda e anotações nunca sobre dados:** procurar região vazia (canto livre do eixo) antes de fixar `loc`; checar o PNG.
+- **Sem espaço para a legenda?** Aumente o limite do eixo (headroom, ~30% da faixa) em vez de encostar a legenda nos dados. Ex.: Fig04 b/c, 2026-10-15.
 - **Notas de texto (ex.: "Spearman ρ = …", "sTDA ~1.2 eV low") ficam acima da moldura, alinhadas à direita** (`ax.text(1.0, 1.02, s, transform=ax.transAxes, ha="right", va="bottom")`), nunca dentro dos dados nem estourando a caixa. Se o texto for longo, quebre em duas linhas ou encurte. Confira no PNG.
 - Nunca entregar um `.eps` que contenha imagem raster embutida por acidente (checar com `grep -c "^%%BeginData\|image" arquivo.eps` ou abrindo no visualizador) — `alpha`/transparência e `rasterized=True` são as causas comuns.
 
