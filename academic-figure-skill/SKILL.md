@@ -19,7 +19,16 @@ Default palettes (matplotlib tab10, ggplot2 hue_pal, Excel colors) signal "not d
 Journal column widths are fixed (89 mm single, 183 mm double). Set figure dimensions at creation time — never scale down post-render.
 
 **4. Vector first, raster as fallback.**
-Line art, scatter plots, bar charts → PDF/SVG/EPS. Only true raster content (heatmap color blocks, micrographs) should use TIFF/PNG at ≥300 dpi.
+Line art, scatter plots, bar charts → EPS (see rule below). Only true raster content (heatmap color blocks, micrographs) should use TIFF/PNG at ≥300 dpi.
+
+**Regra fixa do usuário (2026-10-15): todas as figuras saem em `.eps` vetorizado.**
+- O master de submissão é sempre `.eps` (vetor). PDF e PNG podem existir como cópias de conferência, mas o `.eps` é o arquivo entregue.
+- Python: `ps.fonttype 42` + `fig.savefig(name + ".eps")`. R: `cairo_ps()` ou `ggsave(..., device = cairo_ps)`.
+- **Fonte serif (preferência do usuário, 2026-10-15):** títulos, eixos e ticks em Times New Roman (fallback: Liberation Serif / Nimbus Roman / STIX). Não usar Arial/Helvetica como padrão.
+- **Rótulos de painel no formato `a)`, `b)`, `c)`** (com parêntese, negrito), nunca `(a)` nem `A`.
+- **Séries categóricas (ex.: N/A/B/D):** marcadores ligados por linha fina, em vez de pontos soltos.
+- **Legenda e anotações nunca sobre dados:** procurar região vazia (canto livre do eixo) antes de fixar `loc`; checar o PNG.
+- Nunca entregar um `.eps` que contenha imagem raster embutida por acidente (checar com `grep -c "^%%BeginData\|image" arquivo.eps` ou abrindo no visualizador) — `alpha`/transparência e `rasterized=True` são as causas comuns.
 
 ---
 
@@ -404,7 +413,7 @@ If Python/R runtime is unavailable, skip Pass 3 and warn the user.
 Output:
 1. Complete code block
 2. QA self-check report
-3. Vector PDF master + 300dpi PNG preview
+3. **EPS vector master** (regra fixa do usuário) + 300dpi PNG preview (PDF opcional)
 4. **Statistics & Reproducibility Report** — for every quantitative panel:
    - n definition (what does each replicate represent?)
    - center statistic (mean? median?)
@@ -502,6 +511,7 @@ Generated adapters are in `install/`:
 | `references/journal-specs.md` | Dimension and spine setup |
 | `references/export-specs.md` | Format and resolution |
 | `references/checklist.md` | Full QA checklist |
+| `references/pitfalls-paper-figures.md` | Armadilhas e como evitá-las: unidades de layout, legenda sobre dados, rótulos `a)`, fonte Times, EPS × LaTeX, raster escondido no EPS, séries categóricas, verificação visual |
 
 ### On-Demand
 

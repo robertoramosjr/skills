@@ -6,8 +6,9 @@
 # Academic Figure Skill Typography Baseline — COPY VERBATIM, place at TOP of script
 import matplotlib as mpl
 mpl.rcParams.update({
-    "font.family": "sans-serif",
-    "font.sans-serif": ["Arial", "Helvetica", "Liberation Sans"],
+    "font.family": "serif",   # user preference 2026-10-15: Times New Roman (fallbacks below)
+    "font.serif": ["Times New Roman", "Times", "Liberation Serif", "Nimbus Roman", "STIX"],
+    "mathtext.fontset": "stix",
     "font.size": 8,
     "axes.titlesize": 8,
     "axes.labelsize": 8,
@@ -46,7 +47,7 @@ theme_cns <- theme_bw(base_size = 8, base_family = "Arial") +
 
 ## Font Family
 
-Always sans-serif. **Preferred:** Arial, Helvetica. **Fallback:** Liberation Sans.
+**Preferred (user, 2026-10-15): Times New Roman serif** for titles, axes and ticks. Fallback: Liberation Serif (metric-compatible), Nimbus Roman, STIX. Sans-serif (Arial/Helvetica) only if the journal requires it.
 
 ## Font Size Floor
 

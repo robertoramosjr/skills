@@ -6,22 +6,23 @@
 # Academic Figure Skill Export Baseline — COPY VERBATIM
 mpl.rcParams.update({
     "pdf.fonttype": 42,         # TrueType font embedding
+    "ps.fonttype": 42,          # EPS: fonts embedded as TrueType (editable/searchable)
     "svg.fonttype": "none",     # editable text in SVG
     "savefig.bbox": "tight",    # trim whitespace
     "savefig.dpi": 300,
 })
 
 def save_cns_figure(fig, filename):
-    """Standard Academic Figure Skill export: vector PDF + 300dpi PNG preview."""
-    fig.savefig(f"{filename}.pdf", bbox_inches="tight", dpi=300)
+    """Standard Academic Figure Skill export (user rule 2026-10-15): EPS vector master + 300dpi PNG preview."""
+    fig.savefig(f"{filename}.eps", bbox_inches="tight", format="eps")
     fig.savefig(f"{filename}.png", bbox_inches="tight", dpi=300)
 ```
 
 ```r
 # Academic Figure Skill Export Baseline — COPY VERBATIM
 save_cns_figure <- function(plot, filename, width_mm = 183, height_mm = NULL) {
-  ggsave(paste0(filename, ".pdf"), plot, device = cairo_pdf,
-         width = width_mm, height = height_mm, units = "mm", dpi = 300)
+  ggsave(paste0(filename, ".eps"), plot, device = cairo_ps,
+         width = width_mm, height = height_mm, units = "mm")
   png(paste0(filename, ".png"), width = width_mm, height = height_mm,
       units = "mm", res = 300, type = "cairo")
   print(plot)
