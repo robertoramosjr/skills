@@ -27,7 +27,7 @@ Não decida mudança de arquitetura sozinho — reporte e pergunte.
 
 Para ânions de carga localizada (fenolato, dianião), o ranking dos confôrmeros é governado pela **solvatação**, não pela energia em gás (spread gás HSE06 ≈ 0,2 kcal/mol vs. solvatação COSMO 0,7–1,25). Conformeros fora do corte de 95 % em vácuo ficaram 1,7–3,3 kcal/mol mais bem solvatados que todos os do conjunto. E o ranking **GFN2/ALPB foi anticorrelacionado** com r2SCAN-3c/COSMO para B (ρ = −0,43) e D (−0,21) → o filtro semiempírico só amostra; o **corte decisivo é DFT/COSMO single-point em todos os confôrmeros**.
 
-Plano em estágios: (W1) CREST/GFN2/ALPB ewin 8 → (W2) piloto de relaxação em solvente → (W3) r2SCAN-3c+COSMO SP em todos, população c/ degenerescência (95–99 %), reotimização dos sobreviventes e união por RMSD com os já calculados (`job_water_tier2_*.sh`, `job_water_reopt.sh`) → (W4) HSE06 + COSMO SP e `freeh` só no necessário → G_ens. Publicar **vácuo e água** lado a lado.
+Plano em estágios: (W1) CREST/GFN2/ALPB ewin 8 → (W2) piloto de relaxação em solvente → (W3) r2SCAN-3c+COSMO SP em todos, população c/ degenerescência (95–99 %), reotimização dos sobreviventes (**produção: `jobex -c 800`**, nunca o cap de triagem — 40 ciclos deixaram 343/343 sem convergir) e união por RMSD com os já calculados (`job_water_tier2_*.sh`, `job_water_reopt.sh`) → (W4) HSE06 + COSMO SP e `freeh` só no necessário → G_ens. Publicar **vácuo e água** lado a lado.
 
 ## Auditoria estatística do ML em N pequeno (protocolo congelado — reusar, não re-derivar)
 
@@ -45,4 +45,4 @@ Documento: `feature_selection_protocol.md` (neste repo).
 - `setup_population_job.py` reaproveita `mos` do dir de origem (nível HSE06 nos rotulados): Bader de confôrmeros só-r2SCAN-3c exige `ridft` HSE06 antes (~0,27 núcleo-h).
 - Regex dos estados do `escf.out`: grupo 3 = eV, grupo 7 = f (comprimento). `$soes a 10` é pouco para bandas brilhantes altas.
 - Bader/SEN usam `mos` HSE06, não r2SCAN-3c.
-- Lotes de confirmação escf-only HSE06 ≈ 7,8 núcleo-h/confôrmero; `cosmo ridft` ≈ 0,52 núcleo-h/confôrmero; reotimização em água ≈ 3,7 núcleo-h/confôrmero (estimativa).
+- Lotes de confirmação escf-only HSE06 ≈ 7,8 núcleo-h/confôrmero; `cosmo ridft` ≈ 0,52 núcleo-h/confôrmero; reotimização em água ≈ 3 núcleo-h por 40 ciclos/confôrmero (medido 2026-10-15; total depende de quantos ciclos, ver `gotchas.md#custos`).

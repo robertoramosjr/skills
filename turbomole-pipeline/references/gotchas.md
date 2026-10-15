@@ -35,7 +35,10 @@ Conteúdo: [define](#define-e-input) · [Funcionais/TD-DFT](#funcionais-e-propri
 - `aoforce` morto por walltime deixa `$actual step force` → `actual -r` antes de retomar.
 - Script que segue para escf/aoforce mesmo com `jobex` não convergido (só WARNING) produz resultados pós-jobex **inválidos** — sempre `exit 1` sem `GEO_OPT_CONVERGED`.
 - `jobex` sem `-c` = **100 ciclos**. Geometrias vindas de VASP/substituição atômica precisam de `-c 1500`.
-- `GEO_OPT_FAILED` (cap) é informativo: `rm GEO_OPT_RUNNING not.converged` e reexecutar.
+- `GEO_OPT_FAILED` (cap) é informativo: `rm GEO_OPT_FAILED not.converged` (guardar o `jobex.out` antigo) e reexecutar — o `jobex` continua do `coord` atual, não do zero. Scripts de array devem fazer isso sozinhos (modelo: `job_water_reopt.sh`).
+- **Cap de triagem vazando para produção (2026-10-15, Paper 2):** a reotimização r2SCAN-3c/COSMO dos 343 sobreviventes em água foi submetida com `jobex -c 40` (herdado da lógica de triagem `-c 10`). `sacct` deu 343/343 COMPLETED, exit 0, mas **todos** com `GEO_OPT_FAILED` após 41 ciclos; energia ainda caindo ~0,1 kcal/mol a cada 5 ciclos (pior 0,3), comparável a kT → pesos de Boltzmann inválidos. Regra: **toda otimização cuja energia/geometria alimenta G, pesos ou espectro é produção → `-c 800`**; cap baixo só para ranking descartável. Ao "terminar", contar `GEO_OPT_CONVERGED`/`GEO_OPT_FAILED` por diretório — nunca concluir pelo `sacct`.
+- **Medir quão perto do critério um job capado ficou** (decide se vale continuar): `energy` (ΔE nos últimos 1 e 5 ciclos, drift total ciclo 1→último) + bloco `CONVERGENCE INFORMATION` do `job.last` (quais dos 5 critérios estão `yes`). Em rotores prenila o gradiente máximo passa antes (~50–80 %) e os **deslocamentos** são os últimos a convergir. Pronto: `python3 ~/work_turbomole/scripts/reopt_convergence_report.py reopt/* [--csv out.csv]` (resumo por grupo: convergidos/capados, |ΔE5|, drift).
+- **`aoforce` "ended normally" com hessiana corrompida (2026-10-15, ferulato ácido, HSE06/def2-TZVP, carga −1, 8 SMP):** CPHF convergiu, geometria sã, mas `hessian` com elementos ~5e2 (normal < 1), `vibspectrum` com `**********` nas frequências e o `freeh` "não parseou" (falha só aparece aí). A contagem de imaginárias por `awk` dá número sem sentido (27). Detecção: `grep -q '\*\{10\}' vibspectrum hessian` → falha (já em `job_reference_compound_pipeline.sh`). Fix: mover `aoforce.out hessian vibspectrum vib_normal_modes dipgrad` e saídas do freeh para `failed_aoforce_<data>/` e rodar `aoforce` de novo (o `jobex` convergido é reaproveitado). Causa raiz não identificada (a base −2, mesmo setup, saiu normal); resultado da reexecução `5272825` a registrar aqui.
 - UHF (Cu): `rpas` → "NOT IMPLEMENTED FOR UHF" → `urpa`; o template detecta `$uhf` no `control`.
 
 ## SLURM e ambiente
@@ -59,6 +62,7 @@ Conteúdo: [define](#define-e-input) · [Funcionais/TD-DFT](#funcionais-e-propri
 - Moléculas pequenas com rotores (2,6-DMP): ~12+ núcleo-h em 85–100 ciclos cartesianos — estimativa inicial de 0,5 estava 20–40× baixa. `aoforce` de ferulato estourou 3 h com 4 cpu.
 - Walltime de 3 d estoura rotineiramente em `jobex` HSE06 e em `aoforce` de sistemas grandes.
 - `cosmo ridft` ≈ 0,5 núcleo-h/confôrmero (46 átomos); escf-only HSE06 ≈ 7,8 núcleo-h/confôrmero.
+- r2SCAN-3c/def2-mTZVP **+ COSMO**, 46 átomos, 8 SMP: **~35 s/ciclo** (21–30 min para 41 ciclos; COSMO encarece ~1,5× o vácuo) → ~3 núcleo-h por 40 ciclos/confôrmero. Partindo de geometria CREST/ALPB, 40 ciclos baixam ~2,3–2,6 kcal/mol e **não bastam**: orçar a reotimização em solvente para centenas de ciclos (343 conf. ≈ 1–3 mil núcleo-h).
 
 ## Versões do TURBOMOLE
 

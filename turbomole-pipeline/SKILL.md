@@ -14,7 +14,7 @@ Fluxo reaproveitável de **geometria → cálculo → extração → figura** pa
 1. **Estime o custo (núcleo-h) e REPORTE antes de submeter** qualquer coisa além de poucos minutos de CPU. Estimativas iniciais estiveram 20–40× baixas para moléculas com rotores (metilas/OH/prenilas) — pecar para cima; âncoras em `references/gotchas.md#custos`.
 2. **Nada pesado no login node.** Valide pequeno e escale por `sbatch` (job array `--array=1-N%25`, script lê `$SLURM_ARRAY_TASK_ID`).
 3. **Não decida mudança de arquitetura/nível de teoria sozinho** — reporte e pergunte.
-4. **Valide por TEXTO, nunca por exit code.** `freeh`, `ridft`, `aoforce`, `escf` retornam 0 com "ended abnormally". Estágio com tempo ≈ 0 s = falhou. Grep: `"ended normally"`, `"all done"`, e ausência de `"ended abnormally\|did not converge"`.
+4. **Valide por TEXTO, nunca por exit code.** `freeh`, `ridft`, `aoforce`, `escf` retornam 0 com "ended abnormally". Estágio com tempo ≈ 0 s = falhou. `sacct` COMPLETED também não prova nada: conte os marcadores (`GEO_OPT_CONVERGED` vs `GEO_OPT_FAILED`) por diretório. Grep: `"ended normally"`, `"all done"`, e ausência de `"ended abnormally\|did not converge"`.
 5. **Jobs só sob `/home/rramos/work_turbomole/...`** (FS compartilhado). `/tmp` e o scratchpad do Claude não são vistos pelos nós — o job morre em 0 s sem `job.out`. Listas de jobs de array: caminho absoluto no FS compartilhado.
 6. **Scripts novos:** inglês, `argparse`, modulares, sem hardcode, docstring com `Usage:`, rodáveis a partir da pasta do cálculo; testar antes de entregar. Ficam em `~/work_turbomole/scripts/` (repo git).
 7. **Nunca comparar energia absoluta entre estados de carga diferente** sem ciclo termodinâmico de referência.
@@ -57,7 +57,7 @@ Termodinâmica / pKa (opcional)                     (references/thermo-pka.md)
 Use os `setup_*_template.py` (automatizam o `define` via pexpect/PTY): `setup_hse06_tzvp_template.py`, `setup_hse06_opt_template.py` (opt tight Paper 1), `setup_r2scan3c_template.py`, `setup_pbe0_svp_template.py`, `setup_gw_bse_template.py`, `setup_metal_complex_template.py`. Heredoc cego no `define` entra em loop infinito de menu; resetar `control/basis/auxbasis/mos` a cada tentativa. Depois confira o `control` à mão contra a lista do Paper 1.
 
 ### Estágio 1 — cálculos (resumo; comandos completos em `references/stages.md`)
-1. `jobex -c 800` → exigir `GEO_OPT_CONVERGED`. Se atingir o cap (`GEO_OPT_FAILED`) é informativo: `rm` e reexecutar; o estado sobrevive a `scancel`/TIMEOUT.
+1. `jobex -c 800` → exigir `GEO_OPT_CONVERGED`. Cap baixo (`-c 10/40`) só em triagem descartável; reotimização que alimenta G/pesos/espectro é produção. Se atingir o cap (`GEO_OPT_FAILED`): `rm GEO_OPT_FAILED not.converged` e reexecutar — continua da geometria atual; o estado sobrevive a `scancel`/TIMEOUT.
 2. `ridft` (SCF) → `ridft -proper` (cubo p/ Bader) → Bader → **restaurar `control`** → `ridft` apertado.
 3. `escf` (TD-DFT, `rpas`, `$soes a <N>` = **contagem**), `aoforce` (IR; checar imaginárias), `dscf -proper` com `$pop` (Mulliken/SEN).
 4. Opcionais: DOS/PDOS, Becke/SCPA (Multiwfn), broken-symmetry, GW-BSE, NTO/HOMO-LUMO cubos, Raman.
@@ -69,6 +69,7 @@ Antes de seguir ao Estágio 2: `HOMO-LUMO Separation` em `proper.out`; `tail ACF
 - **`dscf`/`ridft` consomem `$pop`** do `control`. `sed 's/^\$pop.*/…/'` falha em silêncio na 2ª chamada e o `dscf` roda sem população/`dos`. Use o helper `set_pop` (insere antes de `$end` se não existir) — em `references/stages.md`.
 - **`sed '/^\$pointval/,/^origin/d'` apaga até o EOF** (não há `^origin`) e leva o `$end`. Em vez disso: `cp control control.pre_proper` antes do `ridft -proper`, restaurar depois do Bader. Sem restaurar, todo `dscf -proper` recalcula ~2,35 M pontos.
 - **`$soes` é contagem** (`a 30`), nunca faixa (`1-30`). UHF: `$scfinstab urpa`.
+- **`aoforce` pode "terminar normalmente" com hessiana estourada** (`**********` no `vibspectrum`; o `freeh` falha depois): grep por `*` antes do `freeh`, arquivar e refazer o `aoforce` (`references/gotchas.md`).
 - **Estado sujo** (`$actual step …` após crash/walltime): `actual -r` antes de retomar; sintoma = aoforce/escf/pop "terminando" em 0–17 s.
 - **`egrad` não aceita `$rik`** (out-of-memory no `escf_cc_setup`): só RI-J.
 - **Banners "ended normally/abnormally" vão para STDERR** (`job.err`), não para o `.out`; sucesso no stdout = `"ridft : all done"`/`"escf : all done"`.
