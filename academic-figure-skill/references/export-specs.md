@@ -41,7 +41,7 @@ save_cns_figure <- function(plot, filename, width_mm = 183, height_mm = NULL) {
 | Mixed (scatter with >100K rasterized points on vector axes) | PDF with `rasterized=True` on the data layer | Keeps axes/labels as vector text |
 
 **Always deliver:**
-1. One vector master file (PDF preferred, or SVG/EPS if specified by journal)
+1. One vector master file: **EPS** (user rule 2026-10-15; PDF companion only for pdflatex). Structure renders: raster EPS, see `structure-renders.md`
 2. One 300 dpi PNG preview (for quick viewing, chat sharing, manuscript drafts)
 
 ## Python Matplotlib Export

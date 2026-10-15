@@ -1,6 +1,6 @@
 ---
 name: academic-figure-skill
-description: Academic-grade scientific figure creation for Nature/Cell/Science journals. Use when the user asks to create, polish, review, or export scientific figures for manuscript submission. DO NOT trigger for: interactive dashboards (Plotly/Bokeh/Altair), exploratory data analysis without publication intent, math function plots, pie/3D charts, PowerPoint slides, or Illustrator/Figma-first design. SKIP requests about statistical testing, data cleaning, literature review, or code debugging — these are not figure-making tasks.
+description: Academic-grade scientific figure creation for Nature/Cell/Science journals. Use when the user asks to create, polish, review, or export scientific figures for manuscript submission, including 3D molecular or crystal structure renders (ball-and-stick, VESTA-style, from .xyz) and conformer grids. DO NOT trigger for: interactive dashboards (Plotly/Bokeh/Altair), exploratory data analysis without publication intent, math function plots, pie charts, 3D data charts, PowerPoint slides, or Illustrator/Figma-first design. SKIP requests about statistical testing, data cleaning, literature review, or code debugging — these are not figure-making tasks.
 ---
 
 # Academic Figure Skill Hub
@@ -30,9 +30,10 @@ Line art, scatter plots, bar charts → EPS (see rule below). Only true raster c
 - **Séries categóricas (ex.: N/A/B/D):** marcadores ligados por linha fina, em vez de pontos soltos.
 - **Legenda e anotações nunca sobre dados:** procurar região vazia (canto livre do eixo) antes de fixar `loc`; checar o PNG.
 - **Sem espaço para a legenda?** Aumente o limite do eixo (headroom, ~30% da faixa) em vez de encostar a legenda nos dados. Ex.: Fig04 b/c, 2026-10-15.
-- **Legenda fica sempre dentro do quadro** (canto vazio, `loc=` com canto livre; ou faixa de headroom no topo). Nunca abaixo nem fora do eixo. Só *notas de texto* (ρ, p, Q², frases explicativas) vão acima da moldura.
+- **(Gráficos; não se aplica a renders de estrutura, cuja legenda de elementos fica numa linha sob a grade.)** **Legenda fica sempre dentro do quadro** (canto vazio, `loc=` com canto livre; ou faixa de headroom no topo). Nunca abaixo nem fora do eixo. Só *notas de texto* (ρ, p, Q², frases explicativas) vão acima da moldura.
 - **Notas de texto (ex.: "Spearman ρ = …", "sTDA ~1.2 eV low") ficam acima da moldura, alinhadas à direita** (`ax.text(1.0, 1.02, s, transform=ax.transAxes, ha="right", va="bottom")`), nunca dentro dos dados nem estourando a caixa. Se o texto for longo, quebre em duas linhas ou encurte. Confira no PNG.
 - Nunca entregar um `.eps` que contenha imagem raster embutida por acidente (checar com `grep -c "^%%BeginData\|image" arquivo.eps` ou abrindo no visualizador) — `alpha`/transparência e `rasterized=True` são as causas comuns.
+- **Exceção: renders 3D de estrutura** (moléculas, cristais, bola-e-vareta). São raster de verdade: PNG 600 dpi dentro do EPS (Flate, sem perda), mais `.pov`/`.vesta` editáveis, sem moldura nem eixos. Regras completas em `references/structure-renders.md`.
 
 ---
 
@@ -74,7 +75,7 @@ User request received
   Step 6: QA Protocol ←── 4-pass QA (AP-0..AP-7, CL-1..CL-7,
        │                  VI-1..VI-6, VV-1..VV-5). Fix → re-render.
        ▼
-  Step 7: Deliver ←── Vector PDF master + 300dpi PNG preview
+  Step 7: Deliver ←── EPS master (user rule) + 300dpi PNG preview
                       + QA report + statistics report
 ```
 
@@ -516,6 +517,7 @@ Generated adapters are in `install/`:
 | `references/export-specs.md` | Format and resolution |
 | `references/checklist.md` | Full QA checklist |
 | `references/pitfalls-paper-figures.md` | Armadilhas e como evitá-las: unidades de layout, legenda sobre dados, rótulos `a)`, fonte Times, EPS × LaTeX, raster escondido no EPS, séries categóricas, verificação visual |
+| `references/structure-renders.md` | Renders 3D de moléculas (POV-Ray + `.vesta`): cores/raios por elemento, orientação, grades de confôrmeros, EPS comprimido; script em `scripts/render_structures.py` |
 
 ### On-Demand
 

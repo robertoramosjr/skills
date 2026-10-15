@@ -24,7 +24,7 @@ Lessons from real figure work (Paper 2 re-plot, 2026-10-15). Each entry: the tra
 
 ## 6. Raster hidden inside EPS
 **Trap:** transparency (`alpha`) or `rasterized=True` embeds a bitmap in the EPS, and the file looks fine on screen.
-**Rule:** keep `alpha` out of EPS figures. Quick heuristic: `grep -a -c "colorimage\|/ImageType" file.eps` should be 0. This is a heuristic, not a proof; `check_export.py` checks DPI and `pdf.fonttype` only, not `ps.fonttype`, so set `ps.fonttype=42` by hand.
+**Rule:** keep `alpha` out of EPS figures. Quick heuristic: `grep -a -c "colorimage\|/ImageType" file.eps` should be 0 for plots (a structure render EPS is raster by design and will match; see `structure-renders.md`). This is a heuristic, not a proof; `check_export.py` checks DPI and `pdf.fonttype` only, not `ps.fonttype`, so set `ps.fonttype=42` by hand.
 
 ## 7. Categorical series
 **Rule:** for a series over categories (states, methods), use markers joined by a thin line (`lw≈0.9`, marker ≈3 pt). Isolated dots hide the trend.
