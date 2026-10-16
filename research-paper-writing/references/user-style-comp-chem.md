@@ -75,6 +75,12 @@ First, ... Second, ... Third, ...", "Two further points are worth recording."
 
 ## 5. Supplemental Material (style of `supp_paper_1.tex`)
 
+- **Regra de destino (decisão do usuário, 2026-10-16):** tabelas, dados e análises de caráter
+  *complementar à discussão* (checagens de robustez, números absolutos que apoiam mas não
+  são o argumento, resultados de reserva para perguntas de referee) vão **sempre** para o
+  SM, e o texto principal **sempre** os cita ("Table~S\ref{...} of the Supplemental Material"
+  / `Sec.~S...`) numa frase que diga o que o leitor encontra lá. Nunca deixar material
+  complementar só no principal, nem no SM sem referência no principal.
 - Opening paragraph that maps the SM sections.
 - Every table has **explanatory prose before it** (what to look at, two or three
   observations), and a LaTeX comment naming the source file
