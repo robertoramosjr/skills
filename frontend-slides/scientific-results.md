@@ -18,7 +18,8 @@ Origem: pedido de 2026-10-16 no deck do azobenzeno (`work_turbomole/azobenzeno/a
    - **Geometria/RDF:** bloco **"Sugestão · o que isso implica"**, rotulado como sugestão (verde), com uso prático no projeto.
 6. **Antes do slide de referências, um slide "O que estamos fazendo"** ligando cada item do "o que falta/próximos passos" ao andamento real. Fonte: `python3 ~/cofre/tools/cofre.py start <projeto>`, **mais `squeue`/`sacct`**: job `PENDING` é "na fila", não "rodando". Resultado de piloto sai com o n e a ressalva ("n = 10, não é rendimento quântico").
 7. **Sempre entregar HTML + PDF + PPTX** (ver `scripts/export-pdf-pptx.py`). Se o cluster não tem Chromium/LibreOffice, o script usa Firefox headless. O PPTX é imagem por slide, com o texto nas notas.
-8. Conferir no render: nada estoura o cartão, nada cobre o rodapé. Na dúvida, fonte ≥ 24 px (palco 1920×1080).
+8. **A figura preenche a janela branca (`.plate`), sem faixas brancas sobrando.** Figuras de artigo (183 mm de largura, proporção ~1,8 a 3:1) numa janela mais alta ficam menores e com margem; isso incomoda. Gere uma **variante de slide** com a proporção da janela (receita abaixo) e deixe a figura do artigo intacta.
+9. Conferir no render: nada estoura o cartão, nada cobre o rodapé. Na dúvida, fonte ≥ 24 px (palco 1920×1080).
 
 ## Como verificar referências (receita que funcionou)
 
@@ -52,3 +53,11 @@ Padrões de layout que couberam em 1920×1080:
 - **Slide com muita coisa (bond order):** placa de 800 px e coluna com dois cartões (tabela de literatura + "o que muda").
 - **"O que estamos fazendo":** grade 2×2 de `.card` com `h3`, `.chip` de status (`done`/`run`/`wait`) e parágrafo de 32 px.
 - **Referências:** `ol.refs` com `[n]` em mono, 31 px.
+
+## Figura que preenche a janela (receita validada no PDOS do azobenzeno, 2026-10-16)
+
+1. Renderize o slide e **meça a janela branca** pelos pixels (não estime): `numpy`, máscara de branco puro, largura e altura do retângulo. No PDOS: 970 × 685 px, proporção 1,42; com o padding de 10 px, 1,45.
+2. Transforme o bloco da figura em função: `def make_fig(figsize, name, slide=False)`. Chame duas vezes: a versão do artigo (`183/25.4 × 100/25.4`, EPS+PNG, **inalterada**) e a de slide (`183/25.4 × (183/proporção)/25.4`, só PNG, `fig_<nome>_slide.png`). Com `bbox_inches="tight"` a proporção final muda um pouco; confira com `PIL` e ajuste a altura.
+3. No HTML: `<div class="plate" style="flex:1;min-height:0;padding:10px"><img src="img/fig_<nome>_slide.png"></div>`. `min-height:0` evita que a imagem empurre o layout.
+4. Rode o script inteiro e confirme por `md5sum` que os PNGs das outras figuras não mudaram (EPS mudam de bytes por regravação; restaure os antigos de um backup).
+5. Remeça a janela e olhe o render. Regra prática: figuras de 2×3 painéis pedem ~1,45:1; faixas largas (1×2, 1×3) pedem janela larga; escolha o layout (coluna ao lado ou faixa embaixo) a partir da proporção da figura, não o contrário.
