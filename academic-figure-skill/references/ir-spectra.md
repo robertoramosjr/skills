@@ -1,12 +1,12 @@
 # Espectros IR/FTIR calculados: picos rotulados com o modo (regra do Roberto, 2026-10-16)
 
 **Regra:** todo plot de IR/FTIR leva, sobre os **5 picos mais intensos de cada espectro**, um texto vertical com
-`frequência · caráter do modo` (ex.: `718 · γ(C–H)`, `1677 · ν(N=N) + ring ip`). Isso dá robustez à figura: o leitor vê a
+**só o caráter do modo, sem o número de onda** (ex.: `γ(C–H)`, `ν(N=N) + ring ip`; o número já está no eixo x. Pedido do Roberto, 2026-10-16). `peak_labels(..., show_freq=True)` devolve `718 · γ(C–H)` se algum dia for preciso. Isso dá robustez à figura: o leitor vê a
 que movimento cada banda corresponde. **Só 5**: rotular tudo polui (pedido explícito do Roberto).
 
 - O rótulo vem dos **modos normais calculados**, não de memória nem de tabela de literatura. Script:
   `scripts/ir_mode_assign.py` (Turbomole: `coord`, `vib_normal_modes`, `ir_dataset.dat`).
-  `peak_labels(folder, top_n=5, merge=50)` devolve `[(cm-1, intensidade, texto)]`.
+  `peak_labels(folder, top_n=5, merge=50, show_freq=False)` devolve `[(cm-1, intensidade, texto)]`.
 - Método: decomposição da energia cinética de cada modo por átomo em ν(C–H), δ(C–H), γ(C–H), ν(N=N), ν(C–N),
   torção CNNC, anel no plano (`ring ip`) e fora do plano (`ring oop`); rótulo = categoria dominante + a segunda se
   tiver ≥ 22 %. É **caráter dominante, não PED completa**: dizer isso na figura/legenda
