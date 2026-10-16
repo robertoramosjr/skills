@@ -48,7 +48,7 @@ set_pop "mulliken loewdin nbo paboon"       # restaura $pop p/ a população
 ```
 Confirme que `dos` existe **antes** do `mv` (senão move um `dos` antigo).
 
-PDOS Mulliken por elemento pode ter canais **negativos** (artefato). Alternativas sem o artefato: Becke (por elemento, espaço real) e SCPA (elemento × s/p), via `tm2molden` → `Molden2AIM` → `Multiwfn_noGUI`. Binários em `~/local_bin/` (nunca dentro da pasta de cálculo). `tm2molden` pede **2** linhas em branco. Sanidade: soma das PDOS Becke = TDOS (<1e-6). Se o DOS cru tiver "pente", faltou smearing: checar se já existe `*_smeared.dat` antes de re-derivar σ (artepilina C: +0,4 eV).
+PDOS Mulliken por elemento pode ter canais **negativos** (artefato). Alternativas sem o artefato: Becke (por elemento, espaço real) e SCPA (elemento × s/p), via `tm2molden` → `Molden2AIM` → `Multiwfn_noGUI`. Binários em `~/local_bin/` (nunca dentro da pasta de cálculo). `tm2molden` pede **2** linhas em branco. Sanidade: soma das PDOS Becke = TDOS (<1e-6). **SCPA elemento × l (validado no azobenzeno, 2026-10-16):** script em stdin no Multiwfn sobre `molden_new.molden`: `10`,`7`,`2`(SCPA),`-1`; por fragmento `i`,`cond`,`<Elem>`,`<Enter>`,`<S|P|D|F>`,`q`; depois `e`,`0`,`-3`,`2`,`<emin emax passo a.u.>`,`3`,`0.005`,`0`,`3`. def2-TZVP em C/N/H = 10 fragmentos (C/N × s,p,d,f + H × s,p). Resultado: todos ≥ 0, soma/TDOS = 1±3e-5. Receita completa: `MANUAL.md` §7 do repo `turbomole`. Se o DOS cru tiver "pente", faltou smearing: checar se já existe `*_smeared.dat` antes de re-derivar σ (artepilina C: +0,4 eV).
 
 ## 3. Opcionais
 

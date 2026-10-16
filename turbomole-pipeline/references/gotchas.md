@@ -97,3 +97,8 @@ Conteúdo: [define](#define-e-input) · [Funcionais/TD-DFT](#funcionais-e-propri
 ## Bader: resolução do cubo (Ni HSE06, 2026-10-14)
 - m4/m5 é grid XC e **não** muda o cubo; espaçamento padrão de `$pointval fmt=cub` = 0,20 bohr (caixa = molécula ± ~3,5 bohr).
 - Referência 334 e⁻: 0,20 original → 330,39 (Ni +2,47); 0,20 com origem deslocada → 335,22 (Ni +0,20); 0,10 → 333,36 (Ni +1,72). **O erro não é sistemático**: depende de onde o grid cai no pico 1s do caroço (all-electron). Carga de Bader de metal nesse cubo não é confiável; se 0,05 não convergir, Mulliken/Löwdin/NBO ou Multiwfn (bacia com refinamento atômico). Coaraci não tinha `bader` instalado.
+
+## Multiwfn `DOS_curve.txt` com ≥2 fragmentos (2026-10-16, azobenzeno)
+- A coluna 3 é o **OPDOS** (frag. 1×2, negativo por natureza), não um fragmento; valores negativos **colam colunas** (`29.468172-1019.275168`), então `split()` e `np.loadtxt` falham/leem errado. Ler por largura fixa (energia 10 chars + campos de 12): `parse_dos_scpa.py --opdos --energy-au --scale 10` (`--scale 10` = convenção do parser Becke, scale ratio 0,1). Sempre conferir soma dos fragmentos = TDOS.
+- Becke e SCPA resolvem o PDOS negativo do Mulliken (`$pop mo dos` é Mulliken fixo no TM); Becke não separa s/p, SCPA sim.
+
