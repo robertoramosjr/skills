@@ -21,7 +21,7 @@ Método (decomposição da energia cinética, KE, de cada modo normal):
      declarar isso na legenda/nota ("atribuição por decomposição da energia cinética dos modos normais calculados").
 
 Uso:  python3 ir_mode_assign.py <pasta_turbomole> [--min-rel 0.12] [--table]
-API:  assign_modes(folder) -> {modo: (rotulo, {categoria: fração})};  peak_labels(folder, top_n=5, merge=50, show_freq=False) -> [(cm-1, int, texto)]
+API:  assign_modes(folder) -> {modo: (rotulo, {categoria: fração})};  peak_labels(folder, top_n=5, merge=50, show_freq=False, max_cats=2) -> [(cm-1, int, texto)]; max_cats=1 para slide
 Regra de plot: rotular só os 5 picos mais intensos de cada espectro (rotular todos polui a figura).
 """
 import sys, os, re, itertools
@@ -107,7 +107,7 @@ def assign_modes(folder):
     return out
 
 
-def peak_labels(folder, top_n=5, merge=50.0, show_freq=False):
+def peak_labels(folder, top_n=5, merge=50.0, show_freq=False, max_cats=2):
     """Rótulos para o plot: [(freq_cm1, intensidade, texto)] SÓ dos `top_n` picos mais intensos (padrão 5, regra do
     Roberto: rotular tudo polui). Escolha gulosa por intensidade; um pico a menos de `merge` cm-1 de outro já
     escolhido é pulado (evita rótulos sobrepostos). Devolve em ordem de frequência. texto = 'γ(C–H)' (só o efeito; regra do Roberto: sem o número de onda, que já está no eixo);
@@ -118,7 +118,10 @@ def peak_labels(folder, top_n=5, merge=50.0, show_freq=False):
     for mo, w, I in sorted(d.tolist(), key=lambda t: -t[2]):
         if len(chosen) >= top_n: break
         if int(mo) in A and all(abs(w - c[0]) >= merge for c in chosen): chosen.append((w, I, int(mo)))
-    return [(w, I, (f"{w:.0f} · " if show_freq else "") + A[mo][0]) for w, I, mo in sorted(chosen)]
+    def text(mo):   # max_cats=1: só a categoria dominante (rótulo curto para slide, em 24 px); 2: como no artigo
+        if max_cats == 1: return PRETTY[max(A[mo][1].items(), key=lambda t: t[1])[0]]
+        return A[mo][0]
+    return [(w, I, (f"{w:.0f} · " if show_freq else "") + text(mo)) for w, I, mo in sorted(chosen)]
 
 
 if __name__ == "__main__":

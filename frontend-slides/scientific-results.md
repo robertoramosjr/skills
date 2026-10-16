@@ -73,3 +73,21 @@ Padrões de layout que couberam em 1920×1080:
 4. HTML: `<div class="plate" style="flex:1;min-height:0;padding:10px"><img src="img/fig_x_slide.png"></div>` (`min-height:0` em toda janela, para a imagem não empurrar o layout).
 5. Rode também **sem** `SLIDE` e confirme por `md5sum` que os PNGs do artigo não mudaram (os EPS mudam de bytes por regravação: restaure os antigos de um backup).
 6. Remeça as janelas depois de aplicar e olhe o render. Janelas ao lado de cartão de literatura ficam ~1,4 a 1,8:1; faixa de largura total fica ~3,4:1. Painéis 1×3 numa janela 1,7:1 saem altos e estreitos, o que é aceitável; se incomodar, mude o layout (cartão embaixo), não a figura.
+
+## Texto da figura = texto do slide (regra do Roberto, 2026-10-16)
+
+A figura do slide é lida no palco de 1920 px. Se a fonte dela for menor que a do texto do slide, a legibilidade cai (no deck do azobenzeno, 6 a 9 pt viravam ~13 px contra 26 px do texto). Regra:
+
+1. **Tamanho único = texto do slide.** No palco 1920×1080, 1 pt = 1,333 px (96 px/in). Para ficar em 24 px (tamanho das notas) use **18 pt**. Todo texto da figura (ticks, rótulos, legenda, letras dos painéis) fica em 18 pt, sem exceção.
+2. **Figura desenhada na escala 1:1.** Largura da figura em polegadas = largura da janela em pixels / 96. Assim 18 pt sai com 24 px no palco, sem redução. Salve **sem `bbox_inches="tight"`** (inclusive com `rcParams["savefig.bbox"]="standard"`, porque o `tight` vem ativo por padrão no rcParams e continua valendo mesmo que você passe `bbox_inches=None`). Use só `tight_layout()`.
+3. **Cabe na janela ou muda o conteúdo, nunca a fonte.** Ao aumentar a fonte, reduza o que está dentro:
+   - **Legenda por painel:** uma por painel, sem título, só as entradas necessárias, `ncol=1`. Quando a mesma legenda (ex.: linha preta TDOS) se repete em todos os painéis, explique uma vez (`fig.text` no canto).
+   - **Ticks:** `MaxNLocator(3)` no eixo x compartilhado.
+   - **Títulos de painel:** encurte (ex.: "SCPA element" em vez de "SCPA by element").
+   - **Letras a)–f):** suba um pouco acima do título.
+   - **Eixo y:** deixe ~75 % de folga acima dos picos, para a legenda não cobrir dados.
+4. **Rótulos com texto (IR e similares):** no slide use **só a categoria dominante** (ex.: `γ(C–H)`). Duas categorias em 24 px ocupam quase toda a altura do eixo e o eixo estica sem necessidade. A explicação dos rótulos vai para o texto do slide, não para dentro da figura (ex.: "Rótulos: 5 picos mais intensos e modo dominante (ip/oop: no/fora do plano)").
+5. **Verifique no render**, não só no PNG: a figura inteira, a legenda sem cobrir dados, o rótulo sem cruzar outro e o cartão de texto sem encostar no número da página. Se o cartão de texto ficar alto, encurte um parágrafo; não reduza a fonte da figura.
+6. **Figuras do artigo continuam como estão** (EPS e PNG, 183 mm, fontes de 7 a 9 pt). Só a variante `_slide.png` usa as regras acima. Confirme por `md5sum` que as do artigo não mudaram.
+
+Implementação de referência: `work_turbomole/azobenzeno/project_state/figures/deck/gen_figs.py` (`SLIDE_PT`, `SLIDE_W`, `FS()`, `fs()`, `make_pdos()`, `annotate_ir()`).

@@ -458,6 +458,7 @@ Flag these immediately when reviewing user code:
 - Jet/rainbow colormap → offer perceptually uniform
 - Bar chart without individual points (n < 10) → offer strip/swarm overlay
 - Default font → offer Arial/Helvetica
+- Figura para slide com fonte menor que o texto do slide → usar o modo slide (18 pt = 24 px no palco, escala 1:1, sem `bbox tight`); ver `frontend-slides/scientific-results.md`
 - **IR/FTIR sem indicação do modo nos picos → rotular os 5 picos mais intensos de cada espectro** com **só o caráter do modo, sem o número de onda** (ex.: `γ(C–H)`; calculado dos modos normais; ver `references/ir-spectra.md` e `scripts/ir_mode_assign.py`). Rotular todos os picos polui; só 5 (regra do Roberto, 2026-10-16)
 
 ---

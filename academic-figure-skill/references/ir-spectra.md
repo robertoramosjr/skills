@@ -37,3 +37,7 @@ for a, i in zip(axs, iso): annotate_ir(fig, a, x, curves[i], ima.peak_labels(f"{
 Detalhes que evitam colisão: nome do painel (`cis`/`trans`) fora da região dos picos altos (x ≈ 0.30 do eixo), nota de
 legenda numa região vazia (1700–2800 cm⁻¹), `merge=50` cm⁻¹ (pico a menos de 50 cm⁻¹ de um já rotulado é pulado).
 Referência de uso: `work_turbomole/azobenzeno/project_state/figures/deck/gen_figs.py` (bloco "4. IR").
+
+## Slides (regra de legibilidade, 2026-10-16)
+
+Em figura para slide, use `peak_labels(..., max_cats=1)`: só a categoria dominante (`γ(C–H)`, `ring oop`), porque dois termos em 24 px ocupam quase toda a altura do eixo. A explicação dos rótulos vai para o texto do slide. Os rótulos do artigo continuam com duas categorias (`max_cats=2`, padrão).
