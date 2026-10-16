@@ -458,6 +458,7 @@ Flag these immediately when reviewing user code:
 - Jet/rainbow colormap → offer perceptually uniform
 - Bar chart without individual points (n < 10) → offer strip/swarm overlay
 - Default font → offer Arial/Helvetica
+- **IR/FTIR sem indicação do modo nos picos → rotular os 5 picos mais intensos de cada espectro** com `frequência · caráter do modo` (calculado dos modos normais; ver `references/ir-spectra.md` e `scripts/ir_mode_assign.py`). Rotular todos os picos polui; só 5 (regra do Roberto, 2026-10-16)
 
 ---
 
@@ -530,6 +531,7 @@ Generated adapters are in `install/`:
 | `references/directory-map.md` | Step 4 — maps user language to exact figure directory paths |
 | `references/figure-deconstruction.md` | Compositional inspiration |
 | `references/matplotlib.md` | Python/matplotlib/seaborn |
+| `references/ir-spectra.md` | Espectros IR/FTIR (calculados): rótulo do modo nos 5 picos mais intensos, script de atribuição, trecho matplotlib |
 | `references/complexheatmap.md` | R heatmaps |
 | `references/r-rendering.md` | R PNG output — cairo device, showtext off, spec-correct dimensions |
 
