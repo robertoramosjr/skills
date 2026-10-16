@@ -74,6 +74,8 @@ Determine what the user wants:
 
 ### Mode C: Modification Rules
 
+**Escopo (regra do Roberto):** altere só o que foi pedido. Pediu para tirar um slide? Tire só ele. Não remova nem reescreva outros slides por conta própria; se achar que outro também deveria sair, pergunte.
+
 When enhancing existing presentations, fixed-stage fitting is the biggest risk:
 
 1. **Before adding content:** Count existing elements, check against density limits
@@ -231,6 +233,8 @@ If the user selected a self-generated custom wildcard, treat that preview's CSS 
 - Design any missing slide layouts from that system rather than importing patterns from another style.
 - Keep the output fixed-stage, single-file, and visually verified like every other deck.
 
+**Deck de resultados científicos (cálculos Turbomole/VASP/CP2K)?** Leia também [scientific-results.md](scientific-results.md) *antes* de gerar: referências verificadas, comparação com a literatura por tipo de resultado, slide "O que estamos fazendo" e slide de Referências.
+
 **Before generating, read these supporting files:**
 
 - [html-template.md](html-template.md) — HTML architecture and JS features
@@ -261,6 +265,7 @@ When converting PowerPoint files:
 ## Phase 5: Delivery
 
 1. **Clean up** — Delete `.frontend-slides/slide-previews/` if it exists
+   - **Deck de resultados:** além do HTML, gere sempre **PDF + PPTX** com `python3 scripts/export-pdf-pptx.py <index.html> <pasta_temporaria>` (Firefox headless + python-pptx; funciona no cluster sem Chromium/LibreOffice). O PPTX é uma imagem por slide, com o texto nas notas; avise isso ao usuário.
 2. **Open** — Use `open [filename].html` to launch in browser
 3. **Summarize** — Tell the user:
    - File location, style name, slide count
@@ -378,3 +383,5 @@ This captures each slide as a screenshot and combines them into a PDF. Perfect f
 | [scripts/extract-pptx.py](scripts/extract-pptx.py) | Python script for PPT content extraction                             | Phase 4 (conversion)      |
 | [scripts/deploy.sh](scripts/deploy.sh)             | Deploy slides to Vercel for instant sharing                          | Phase 6 (sharing)         |
 | [scripts/export-pdf.sh](scripts/export-pdf.sh)     | Export slides to PDF                                                 | Phase 6 (sharing)         |
+| [scientific-results.md](scientific-results.md)     | Regras para decks de resultados: referências, literatura, "o que muda", "o que estamos fazendo", CSS `.lit` | Phase 3 (decks de resultados) |
+| [scripts/export-pdf-pptx.py](scripts/export-pdf-pptx.py) | HTML → PDF + PPTX via Firefox headless (sem Chromium/LibreOffice) | Phase 5 (decks de resultados) |
