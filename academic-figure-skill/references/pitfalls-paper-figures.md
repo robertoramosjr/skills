@@ -52,3 +52,7 @@ Lessons from real figure work (Paper 2 re-plot, 2026-10-15). Each entry: the tra
 ## 13. Compiling the paper (TeX toolchain)
 **Trap:** the system TeX Live 2018 mixed with 2025 packages failed on `siunitx` ("kernel too old") and on `chemgreek`.
 **Fix:** install a user-level TeX Live with `install-tl -no-interaction -profile` into `~/texlive/<year>` (no root), put its `bin/x86_64-linux` first in `PATH`, and keep only the packages missing from it in `~/texmf` (here `revtex4-2`, `mhchem`, `chemgreek`). Install from CTAN only; never run a downloaded `.ins` in its own folder.
+
+## 14. Dado experimental de figura de paper em PDF (2026-10-15)
+**Trap:** digitalizar à mão uma figura ruim de um PDF (curva imprecisa, pH/λ lidos a olho) quando ela costuma ser vetorial.
+**Rule:** primeiro `pdfimages -list`: se a figura não é raster, `pdftocairo -svg -f P -l P x.pdf out.svg` e ler os `<path>` (matriz `transform` aplicada) — marcas de escala dos eixos dão a calibração, marcadores são triângulos/círculos preenchidos, cada curva é um path longo. Precisão ~0,1 unidade. Salvar em `Figures/data/` com DOI e método no cabeçalho; conferir contra números citados no texto do paper. Marcadores quantizados (ex.: λmax a ~1 nm) dizer na legenda. Curva sem rótulo de pH: atribuir por ordem de desenho + λmax e marcar a suposição.
