@@ -33,6 +33,7 @@ Conteúdo: [define](#define-e-input) · [Funcionais/TD-DFT](#funcionais-e-propri
 
 - `escf` morto deixa `$actual step escf` → `aoforce`/`dscf -proper` seguintes morrem com `CONTRL dead = actual step`, "terminam" em 0–17 s com exit 0. **Tempo de estágio ≈ 0 s = falha.** Fix: `actual -r`.
 - `aoforce` morto por walltime deixa `$actual step force` → `actual -r` antes de retomar.
+- **`$actual step` herdado por geradores de continuação (2026-10-16, azobenzeno SH):** ao montar um `control` novo a partir do de uma corrida que morreu (`ridft`/`dscf` com SIGSEGV), filtre também `$actual` (e `$last step`); senão a continuação morre em 2 s com `*** longjmp causes uninitialized stack frame *** ridft_omp terminated`. A mensagem do `jobex` ("missing input files … rerun define") é genérica e engana: olhar `job.last`/`jobex.out` e `grep '^\$actual' control`. *(correção do gerador em `scripts/prepare_tm_s0_continuation_v2.py`; confirmação em cluster pendente quando escrito)*
 - Script que segue para escf/aoforce mesmo com `jobex` não convergido (só WARNING) produz resultados pós-jobex **inválidos** — sempre `exit 1` sem `GEO_OPT_CONVERGED`.
 - `jobex` sem `-c` = **100 ciclos**. Geometrias vindas de VASP/substituição atômica precisam de `-c 1500`.
 - `GEO_OPT_FAILED` (cap) é informativo: `rm GEO_OPT_FAILED not.converged` (guardar o `jobex.out` antigo) e reexecutar — o `jobex` continua do `coord` atual, não do zero. Scripts de array devem fazer isso sozinhos (modelo: `job_water_reopt.sh`).
@@ -69,6 +70,13 @@ Conteúdo: [define](#define-e-input) · [Funcionais/TD-DFT](#funcionais-e-propri
 - 7.8.1: `~/software/TURBOMOLE` (produção, NTO via `proper`/`dftnto`). 8.0.1: `~/software/TURBOMOLE801` (access) e `~/software/TURBOMOLE` + `~/software/turbomole_env.sh` (coaraci, user `roarj`) — **só smoke-test** (H2O ridft+egrad); não afirmar validada para produção, azobenzeno ou Newton-X (NX lê a versão do nome de `TURBODIR`).
 - `tm2molden` pede 2 linhas em branco (nome + confirmação Y/N).
 - O `job.pbs` antigo nas pastas é enganoso: o cluster é SLURM.
+
+## Surface hopping nativo do TM (`frog`, `jobex -ri -ex -md`, 2026-10-16)
+
+- **Classifique cada trajetória por TEXTO e em 4 estados, nunca só pela geometria final:** `hop_ok` (`event: hop` no `event.yaml` + S0 ≥ 20 fs), `no_hop` (rodou até o fim em S1), `died_S1` (sem salto e `jobex.out` termina em `ended abnormally`), `died_S0` (salto mas a continuação em S0 morreu cedo). Um `classify` que olha só o |CNNC| final rotula como "trans-like" trajetórias que nunca saltaram. Implementação: `scripts/summarize_sh_traj.py`.
+- `mdmaster` `$nsteps` é reescrito pelo `frog` como **passos RESTANTES** (400 → 144 após 256 passos); não é teto. Não deduza tempo de simulação dele.
+- Em diretórios JÁ rodados `coord` é sobrescrito a cada passo: para conferir a IC use o 1º quadro do `mdlog.1` ou um diretório virgem.
+- Rendimento/fração de troca: denominador = só `hop_ok`; `no_hop`/`died_*` contados à parte (`scripts/aggregate_sh.py`, IC de Wilson).
 
 ## Scan relaxado e Newton-X
 
