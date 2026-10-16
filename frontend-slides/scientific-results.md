@@ -54,10 +54,22 @@ Padrões de layout que couberam em 1920×1080:
 - **"O que estamos fazendo":** grade 2×2 de `.card` com `h3`, `.chip` de status (`done`/`run`/`wait`) e parágrafo de 32 px.
 - **Referências:** `ol.refs` com `[n]` em mono, 31 px.
 
-## Figura que preenche a janela (receita validada no PDOS do azobenzeno, 2026-10-16)
+## Figura que preenche a janela (validado no deck do azobenzeno, 2026-10-16: slides 4 a 9)
 
-1. Renderize o slide e **meça a janela branca** pelos pixels (não estime): `numpy`, máscara de branco puro, largura e altura do retângulo. No PDOS: 970 × 685 px, proporção 1,42; com o padding de 10 px, 1,45.
-2. Transforme o bloco da figura em função: `def make_fig(figsize, name, slide=False)`. Chame duas vezes: a versão do artigo (`183/25.4 × 100/25.4`, EPS+PNG, **inalterada**) e a de slide (`183/25.4 × (183/proporção)/25.4`, só PNG, `fig_<nome>_slide.png`). Com `bbox_inches="tight"` a proporção final muda um pouco; confira com `PIL` e ajuste a altura.
-3. No HTML: `<div class="plate" style="flex:1;min-height:0;padding:10px"><img src="img/fig_<nome>_slide.png"></div>`. `min-height:0` evita que a imagem empurre o layout.
-4. Rode o script inteiro e confirme por `md5sum` que os PNGs das outras figuras não mudaram (EPS mudam de bytes por regravação; restaure os antigos de um backup).
-5. Remeça a janela e olhe o render. Regra prática: figuras de 2×3 painéis pedem ~1,45:1; faixas largas (1×2, 1×3) pedem janela larga; escolha o layout (coluna ao lado ou faixa embaixo) a partir da proporção da figura, não o contrário.
+1. **Meça a janela branca (`.plate`) no render**, não estime: screenshot 1920×1080, máscara de branco puro (`min(R,G,B) >= 253`), retângulo. Cuidado: a moldura do gráfico parte o branco em regiões, então `scipy.ndimage.label` pode pegar só uma delas; limite a caixa de busca às colunas da janela e use o bbox de todo o branco. A proporção-alvo da figura é a da janela menos o padding (use `padding:10px`).
+2. **Script de figuras com modo slide.** No `gen_figs.py` (matplotlib):
+   ```python
+   SLIDE = os.environ.get("SLIDE") == "1"
+   SLIDE_AR = {"fig_x": largura/altura, ...}      # calibrado, ver passo 3
+   def fs(w_mm, h_mm, name): return (w_mm/25.4, (w_mm/SLIDE_AR[name] if SLIDE and name in SLIDE_AR else h_mm)/25.4)
+   def save_cns_figure(fig, filename):
+       if SLIDE:                                     # só PNG, nome <fig>_slide.png
+           if os.path.basename(filename) in SLIDE_AR: fig.savefig(f"{filename}_slide.png", bbox_inches="tight", dpi=300)
+           return
+       fig.savefig(f"{filename}.eps", ...); fig.savefig(f"{filename}.png", ...)   # artigo, inalterado
+   ```
+   e em cada figura `plt.subplots(..., figsize=fs(183, 62, "fig_x"))`.
+3. **Calibre em 2 a 3 iterações:** `bbox_inches="tight"` muda a proporção final. Rode `SLIDE=1`, leia o aspecto real do PNG e faça `AR *= alvo/real` até o erro ser < 1 %. Grave os valores calibrados como padrão no script.
+4. HTML: `<div class="plate" style="flex:1;min-height:0;padding:10px"><img src="img/fig_x_slide.png"></div>` (`min-height:0` em toda janela, para a imagem não empurrar o layout).
+5. Rode também **sem** `SLIDE` e confirme por `md5sum` que os PNGs do artigo não mudaram (os EPS mudam de bytes por regravação: restaure os antigos de um backup).
+6. Remeça as janelas depois de aplicar e olhe o render. Janelas ao lado de cartão de literatura ficam ~1,4 a 1,8:1; faixa de largura total fica ~3,4:1. Painéis 1×3 numa janela 1,7:1 saem altos e estreitos, o que é aceitável; se incomodar, mude o layout (cartão embaixo), não a figura.
