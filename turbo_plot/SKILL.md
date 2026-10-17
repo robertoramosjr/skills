@@ -24,6 +24,8 @@ Rode o `plot_spectra.py` a partir da pasta do cálculo ou com `--dir`:
 python ~/.claude/skills/turbo_plot/scripts/plot_spectra.py --dir <pasta_do_calculo> --output <pasta>/spectra_<molecula> --width double
 ```
 
+**PDOS (por elemento, Ni×momento angular):** `scripts/plot_pdos.py --curve DOS_curve.txt --labels Ni S N O C H --orginfo orginfo.txt --xlim -20 5 --output <prefixo>`. O `DOS_curve.txt` vem do Multiwfn (SCPA, `MANUAL.md` §7 do repo turbomole). **Armadilha:** o `molden2aim` descarta os orbitais virtuais (PDOS some acima do HOMO). Contorno validado no Ni-singleto (2026-10-17): antes do `molden2aim`, trocar todo `Occup=` do `.molden` por 2.0 (e `[Program] turbomole` na 1ª linha, `carsph=1` no `m2a.ini`, responder `No` ao prompt); depois, no `molden_new.molden`, voltar `Occup=0` para os MOs acima do HOMO. O `molden` cru do `tm2molden` sem `[5D7F]` é lido como cartesiano (Tr(S·P) errado), então não serve para PDOS.
+
 **Uma figura por resultado, nunca tudo junto num painel múltiplo** (pedido do usuário). `--output` é o prefixo: o script grava `<prefixo>_uvvis`, `<prefixo>_ir` e `<prefixo>_dos`, cada um em `.eps` (master vetorial, o arquivo de submissão) e `.png` (preview 300 dpi). `--only ir` gera só uma. `--width single` (padrão) usa a coluna de 89 mm; `double`, 183 mm. Ele pula com aviso o que faltar. Dependências: `numpy` e `matplotlib`.
 
 A figura de IR rotula os 5 picos mais intensos com o caráter do modo normal quando a pasta tem `coord`, `vib_normal_modes` e `vibspectrum` (`--ir-labels 0` desliga). O `vib_normal_modes` vem do `aoforce` e nem sempre fica na pasta de espectros: procure na pasta de produção e em `metal_complexes/gpu_test/*/`, e confira que `coord` e `vibspectrum` são os mesmos (`diff`) antes de copiar.
