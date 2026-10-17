@@ -102,3 +102,13 @@ Conteúdo: [define](#define-e-input) · [Funcionais/TD-DFT](#funcionais-e-propri
 - A coluna 3 é o **OPDOS** (frag. 1×2, negativo por natureza), não um fragmento; valores negativos **colam colunas** (`29.468172-1019.275168`), então `split()` e `np.loadtxt` falham/leem errado. Ler por largura fixa (energia 10 chars + campos de 12): `parse_dos_scpa.py --opdos --energy-au --scale 10` (`--scale 10` = convenção do parser Becke, scale ratio 0,1). Sempre conferir soma dos fragmentos = TDOS.
 - Becke e SCPA resolvem o PDOS negativo do Mulliken (`$pop mo dos` é Mulliken fixo no TM); Becke não separa s/p, SCPA sim.
 
+## coaraci: GPU, arrays, espectros (2026-10-17, Ni-singleto HSE06)
+- **Sem job array na coaraci** (usuário, 2026-10-17): cada tarefa do array ocupa uma vaga de fila e as filas dele são limitadas. Rodar **sequencial em 1 job** e auto-encadear com `--dependency=afterany:$SLURM_JOB_ID` (modelo: `job_metal_complex_trio.sh`). Isto vale para qualquer script novo na coaraci (vale também onde a regra 0.2 do SKILL.md fala em array).
+- **aoforce em GPU** (`source ~/software/turbomole_gpu_env.sh`, fila `gpu-x`, 1 A30 + 16 núcleos): Ni HSE06 67 átomos, 3h07 (vs >3 d em CPU/NumForce); energia/vibspectrum iguais à CPU no Ni(CO)4 (fp32 e fp64). Rodar numa CÓPIA do diretório. Cu (UHF) em GPU ainda não validado.
+- **Raman DFT**: `aoforce` só dá IR (coluna RAMAN do `vibspectrum` = regra de seleção). Intensidades: `egrad` com `$scfinstab polly` + `intense` (validado Ni(CO)4: 24 s). Antes de `egrad`, tirar `$scfinstab rpas`/`$soes` da cópia (senão `$scfinstab` duplicado). NÃO fazer diferenças finitas da polarizabilidade (342 pontos ≈ 63 h de GPU) — a rota analítica custa ≈ 1 aoforce.
+- **`tm2molden`**: 1º prompt = NOME DO ARQUIVO DE SAÍDA (padrão `molden.input`), não o `mos`; responder com linhas em branco. Digitar `mos` nele pede para sobrescrever o próprio `mos`.
+- **`vib_normal_modes`/`hessian`**: linhas de largura fixa (`i3 j2` + 5 valores; `535` = linha 5, bloco 35), logo `split()` quebra. Modos = deslocamentos cartesianos de norma 1; massa reduzida = Σ m·L². Polarizabilidade do `escf` (polly) em bohr³, tensor em "electronic polarizability :".
+- **Multiwfn DOS em batch** (menu 10): `8` (eV) · `2` faixa+passo · `3` FWHM · `0` plota · `3` exporta `DOS_curve.txt`/`DOS_line.txt` · `0` · `-10`. Script: `scripts/tm_dos.py` (HOMO/LUMO e gap incluídos).
+- **UV-vis**: o `exspectrum` só vai até o último estado do `$soes`; abaixo disso o espectro ampliado não é confiável (Ni: 30 estados, até 283 nm). `scripts/tm_spectra.py` (IR + UV-vis).
+- Termoquímica: o Hessian da GPU basta para `freeh` (entrada em branco, 298,15 K, 0,1 MPa); sem imaginárias no Ni (menor modo 32 cm⁻¹).
+
