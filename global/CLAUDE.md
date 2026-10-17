@@ -1,7 +1,7 @@
 # Regras globais (Roberto)
 
 ## Skills (`~/skills`, `git@github.com:robertoramosjr/skills.git`)
-- Início de sessão: `git -C ~/skills pull` (sem o diretório: clonar e criar symlinks conforme o README do repo). Fim: se editou skill, `add/commit/push`. Conflito: linha a linha, nunca `--theirs/--ours` cego.
+- Início de sessão: `git -C ~/skills pull` (sem o diretório: clonar e criar symlinks conforme o README do repo). Fim: sempre `git -C ~/skills status`; havendo mudança, `add/commit/push` (a skill `cofre-sync` cobra isso). Conflito: linha a linha, nunca `--theirs/--ours` cego.
 - Acione a skill do código (`turbomole-pipeline`, `vasp-pipeline`, `cp2k-pipeline`) quando faltar método, parâmetro ou armadilha — antes de adivinhar. Método fica nas skills; estado no cofre.
 
 ## Cofre (`~/cofre`): estado, pendências, jobs — protocolo em camadas (reestruturado 2026-10-14)
