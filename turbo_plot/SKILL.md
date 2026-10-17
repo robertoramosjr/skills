@@ -13,7 +13,7 @@ Esta skill absorveu as regras de figura de `academic-figure-skill` (`~/skills/ac
 
 | Situação | Use |
 |---|---|
-| Figura de espectros de uma pasta de cálculo (UV-vis, IR, TDOS) | `scripts/plot_spectra.py` (matplotlib, EPS + PNG, padrão de revista) |
+| Figuras de espectros de uma pasta de cálculo (UV-vis, IR, TDOS), uma figura por resultado | `scripts/plot_spectra.py` (matplotlib, EPS + PNG, padrão de revista) |
 | Figura de paper com layout fino, rótulos, múltiplos painéis | Veusz (`veusz_env`), scripts `veusz/plot_*.py` do repo |
 | Espectro/DOS de outro estudo que já tem `plot_*_matplotlib.py` | o script existente, conferindo as regras da seção 3 |
 | Figura de revista de outro tipo (barras, scatter, heatmap) | `academic-figure-skill` (fluxo completo, `references/`) |
@@ -24,7 +24,9 @@ Rode o `plot_spectra.py` a partir da pasta do cálculo ou com `--dir`:
 python ~/.claude/skills/turbo_plot/scripts/plot_spectra.py --dir <pasta_do_calculo> --output <pasta>/spectra_<molecula> --width double
 ```
 
-`--output` é o nome sem extensão: o script grava `<nome>.eps` (master vetorial, o arquivo de submissão) e `<nome>.png` (preview 300 dpi). `--width single` usa a coluna de 89 mm; `double` (padrão), 183 mm. Ele pula com aviso os arquivos que faltarem. Dependências: `numpy` e `matplotlib`.
+**Uma figura por resultado, nunca tudo junto num painel múltiplo** (pedido do usuário). `--output` é o prefixo: o script grava `<prefixo>_uvvis`, `<prefixo>_ir` e `<prefixo>_dos`, cada um em `.eps` (master vetorial, o arquivo de submissão) e `.png` (preview 300 dpi). `--only ir` gera só uma. `--width single` (padrão) usa a coluna de 89 mm; `double`, 183 mm. Ele pula com aviso o que faltar. Dependências: `numpy` e `matplotlib`.
+
+A figura de IR rotula os 5 picos mais intensos com o caráter do modo normal quando a pasta tem `coord`, `vib_normal_modes` e `vibspectrum` (`--ir-labels 0` desliga). O `vib_normal_modes` vem do `aoforce` e nem sempre fica na pasta de espectros: procure na pasta de produção e em `metal_complexes/gpu_test/*/`, e confira que `coord` e `vibspectrum` são os mesmos (`diff`) antes de copiar.
 
 ## 2. Entradas esperadas
 
@@ -44,12 +46,13 @@ Os `.dat` são gerados pelo `tm_spectra.py` (IR/UV-vis) e pelo `tm_dos.py` (DOS)
 - **Tipografia serif:** Times New Roman, com fallback Liberation Serif / Nimbus Roman / STIX. Nesta máquina só STIX está instalado, e ele tem métrica de Times. Sem texto abaixo de 5 pt no tamanho final.
 - **Largura de coluna fixa:** 89 mm (uma coluna) ou 183 mm (duas). Monte a figura já nessa largura; nunca reduza depois.
 - **Moldura fechada** (quatro lados), sem grade. Ticks para fora.
-- **Rótulos de painel no formato `a)`, `b)`, `c)`**, em negrito, fora do canto superior esquerdo da moldura.
+- **Rótulos de painel `a)`, `b)`, `c)`** (negrito, fora do canto superior esquerdo) só quando houver mais de um painel numa figura. Espectros saem um por figura, então não levam rótulo.
 - **Legenda dentro da moldura**, em região vazia. Se não houver espaço, aumente o limite do eixo (~30 % de folga no topo) em vez de encostar a legenda nos dados. O script já faz isso.
 - **Notas de texto** (ex.: "ρ = …", "sTDA ~1,2 eV baixo") ficam acima da moldura, alinhadas à direita, nunca sobre os dados.
 - **Sem transparência (`alpha`) no master.** O script usa cores opacas; a área do DOS é preenchida com cor clara sólida.
 - **Paleta:** Okabe-Ito (azul para a curva, laranja para os sticks, verde para o DOS). Cores sólidas e seguras para daltonismo.
-- **Picos de IR:** a regra do Roberto (2026-10-16) pede o rótulo do modo normal nos **5 picos mais intensos** (só o caráter, ex.: `γ(C–H)`, sem o número). Isso requer o arquivo `vib_normal_modes`, que o `aoforce` grava. A pasta de espectros atual **não tem** esse arquivo, então essa rotulagem ainda não está no `plot_spectra.py`. Para incluir, use `~/skills/academic-figure-skill/scripts/ir_mode_assign.py` (função `peak_labels`) e a receita de `~/skills/academic-figure-skill/references/ir-spectra.md`. Diga na legenda que é o caráter dominante, não PED completa.
+- **Picos de IR:** regra do Roberto (2026-10-16): rótulo do modo normal nos **5 picos mais intensos**, só o caráter (ex.: `γ(X–H)`), sem o número de onda. `scripts/ir_mode_labels.py` faz isso para complexos metálicos: decompõe a energia cinética de cada modo por papel do átomo (H–X, metal, átomo doador e seu parceiro, par N–N, esqueleto) e dá o caráter dominante. Rode `python ir_mode_labels.py --folder . --table` para ver as frações e conferir a sanidade (ν(X–H) em ~3000–3600, γ(C–H) em ~650–850, ν(C=N) em ~1600–1700). O `ir_mode_assign.py` da academic-figure-skill é só para corante azo e não conhece metais. Na legenda da figura, diga que é o caráter dominante (decomposição da energia cinética), não uma PED completa. Os picos rotulados ficam a pelo menos 100 cm⁻¹ um do outro para os textos verticais não colidirem.
+- **Formato do `vib_normal_modes`:** campos de largura fixa (componente nas colunas 1–3, bloco de 5 modos nas colunas 4–5). A partir do bloco 10 os campos se encostam (`  110`), então um `split()` perde essas linhas. Com `split` este arquivo (67 átomos) lê só 45 dos 201 modos.
 - **Veusz (alternativa de layout):** `LC_ALL=C` (ponto decimal); ambiente `veusz_env`. Locale pt_BR quebra a leitura de números.
 - **Renderização 3D/2D de estrutura e isosuperfícies** usam `vasp_env` (rdkit/ase/povray). Estrutura é raster de verdade: PNG 600 dpi dentro do EPS, sem moldura. Regras em `~/skills/academic-figure-skill/references/structure-renders.md`.
 
@@ -69,6 +72,7 @@ Os `.dat` são gerados pelo `tm_spectra.py` (IR/UV-vis) e pelo `tm_dos.py` (DOS)
 
 ## 6. Referências
 
-- `scripts/plot_spectra.py` — figura de três painéis de espectros de uma pasta (`--help` para as opções).
+- `scripts/plot_spectra.py` — figuras de espectros de uma pasta, uma por resultado (`--help` para as opções).
+- `scripts/ir_mode_labels.py` — caráter dominante dos modos normais e rótulos dos picos de IR.
 - `~/skills/academic-figure-skill/references/` — detalhe de `typography.md`, `export-specs.md`, `journal-specs.md`, `color-palettes.md`, `ir-spectra.md`, `structure-renders.md`.
 - Mapa de scripts de figura do repo: `~/.claude/skills/turbomole-pipeline/references/scripts-map.md`, seção "Espectros/figuras".

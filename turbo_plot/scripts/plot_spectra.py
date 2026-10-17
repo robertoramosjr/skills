@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
-"""Plot the TURBOMOLE/Multiwfn spectra found in a calculation folder for publication.
+"""Plot the TURBOMOLE/Multiwfn spectra of a calculation folder, one figure per result.
 
 Reads the broadened curves and stick files written by the extraction step
-(uvvis_*.dat, ir_*.dat, dos_tdos.dat) and writes one three-panel figure:
-UV-vis (sticks + broadened), IR (sticks + broadened) and total DOS.
-Missing inputs are skipped with a warning, so a partial folder still plots.
+(uvvis_*.dat, ir_*.dat, dos_tdos.dat) and writes a separate single-panel figure
+for each: <stem>_uvvis, <stem>_ir and <stem>_dos. Missing inputs are skipped
+with a warning. When `vib_normal_modes`, `vibspectrum` and `coord` are present,
+the five most intense IR peaks are labelled with the dominant character of the
+calculated normal mode (see ir_mode_labels.py).
 
-Output is an EPS vector master (the submission file) plus a 300 dpi PNG
+Each figure is an EPS vector master (the submission file) plus a 300 dpi PNG
 preview, following the academic-figure-skill rules: serif type, closed frame,
-panel labels a) b) c), legend inside the frame.
+legend inside the frame.
 
 Usage:
-    python plot_spectra.py                              # run from the calculation folder
-    python plot_spectra.py --dir spectra --output fig1  # writes fig1.eps and fig1.png
-    python plot_spectra.py --width single               # 89 mm column instead of 183 mm
+    python plot_spectra.py                                # run from the calculation folder
+    python plot_spectra.py --dir spectra --output fig_ni  # fig_ni_uvvis/_ir/_dos .eps/.png
+    python plot_spectra.py --only ir --width double       # one figure, 183 mm wide
 """
 
 import argparse
@@ -26,8 +28,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import ir_mode_labels  # noqa: E402
+
 # Typography and export baseline, from academic-figure-skill/references/typography.md
-# and export-specs.md. Serif per the user's rule (Times New Roman); STIX is the
+# and export-specs.md. Serif per the user's rule (Times New Roman); STIXGeneral is the
 # fallback because it ships with matplotlib and has Times metrics.
 BASE_RC = {
     "font.family": "serif",
@@ -53,15 +58,17 @@ BASE_RC = {
 }
 
 WIDTH_MM = {"single": 89, "double": 183}
-HEIGHT_MM = 70
+HEIGHT_RATIO = 0.75
 PREVIEW_DPI = 300
 
-# Colour-blind-safe pair (Okabe-Ito). Solid colours only: alpha in an EPS
+# Colour-blind-safe set (Okabe-Ito). Solid colours only: alpha in an EPS
 # forces a raster block into the vector master, so the DOS fill is opaque.
 CURVE_COLOR = "#0072B2"
 STICK_COLOR = "#D55E00"
 DOS_COLOR = "#009E73"
 DOS_FILL = "#CCE8DF"
+LABEL_FONTSIZE = 6.5
+LABEL_WINDOW_CM = 80  # labels start above the highest curve point within this window
 
 
 def parse_args(argv=None):
@@ -69,9 +76,13 @@ def parse_args(argv=None):
     parser.add_argument("--dir", default=".", type=Path,
                         help="folder holding the .dat files (default: current directory)")
     parser.add_argument("--output", default="spectra", type=str,
-                        help="output stem; writes <stem>.eps and <stem>.png (default: spectra)")
-    parser.add_argument("--width", choices=sorted(WIDTH_MM), default="double",
-                        help="journal column width (default: double, 183 mm)")
+                        help="output stem; writes <stem>_<result>.eps/.png (default: spectra)")
+    parser.add_argument("--width", choices=sorted(WIDTH_MM), default="single",
+                        help="journal column width (default: single, 89 mm)")
+    parser.add_argument("--only", choices=("uvvis", "ir", "dos"), default=None,
+                        help="plot only this result (default: all three)")
+    parser.add_argument("--ir-labels", default=5, type=int,
+                        help="number of IR peaks labelled with the mode character; 0 disables (default: 5)")
     return parser.parse_args(argv)
 
 
@@ -81,21 +92,17 @@ def load_xy(path, columns=(0, 1)):
     return data[:, 0], data[:, 1]
 
 
-def panel_label(ax, letter):
-    """Panel label in the a) format, bold, outside the top-left corner of the frame."""
-    ax.text(-0.16, 1.04, f"{letter})", transform=ax.transAxes,
-            fontweight="bold", fontsize=8, ha="left", va="bottom")
-
-
-def headroom(ax, factor=1.3):
-    """Raise the y-limit so the legend sits in empty space instead of on the data."""
+def headroom(ax, factor):
+    """Raise the y-limit so the legend and labels sit in empty space, not on the data."""
     ax.set_ylim(0, ax.get_ylim()[1] * factor)
 
 
-def plot_uvvis(ax, folder):
+def plot_uvvis(ax, folder, **_):
     """UV-vis: broadened curve in nm with oscillator-strength sticks."""
     broad = folder / "uvvis_broadened.dat"
     sticks = folder / "uvvis_sticks.dat"
+    if not broad.exists() and not sticks.exists():
+        return False
     if broad.exists():
         x, y = load_xy(broad, columns=(0, 2))
         ax.plot(x, y, color=CURVE_COLOR, lw=1.0, label="broadened")
@@ -104,64 +111,89 @@ def plot_uvvis(ax, folder):
         ax.vlines(wl, 0, f, color=STICK_COLOR, lw=0.8, label="sticks")
     ax.set_xlabel("Wavelength (nm)")
     ax.set_ylabel("Oscillator strength (a.u.)")
-    headroom(ax)
+    headroom(ax, 1.3)
     ax.legend(loc="upper right")
+    return True
 
 
-def plot_ir(ax, folder):
-    """IR: broadened spectrum with intensity sticks."""
+def label_ir_peaks(ax, folder, curve_x, curve_y, top_n):
+    """Vertical mode-character labels above the top_n most intense IR peaks."""
+    needed = ("coord", "vib_normal_modes", "vibspectrum")
+    absent = [name for name in needed if not (folder / name).exists()]
+    if absent:
+        print(f"warning: IR labels skipped, missing {', '.join(absent)} in {folder}", file=sys.stderr)
+        return
+    ymax = curve_y.max()
+    ax.set_ylim(0, ymax * 1.45)
+    for wn, _, text in ir_mode_labels.peak_labels(folder, top_n=top_n):
+        near = np.abs(curve_x - wn) <= LABEL_WINDOW_CM
+        y0 = curve_y[near].max() + 0.02 * ymax
+        ax.text(wn, y0, text, rotation=90, ha="center", va="bottom",
+                fontsize=LABEL_FONTSIZE, color="0.15")
+
+
+def plot_ir(ax, folder, ir_labels=5, **_):
+    """IR: broadened spectrum with intensity sticks and mode labels on the main peaks."""
     broad = folder / "ir_broadened.dat"
     sticks = folder / "ir_sticks.dat"
+    if not broad.exists() and not sticks.exists():
+        return False
+    curve = None
     if broad.exists():
-        x, y = load_xy(broad)
-        ax.plot(x, y, color=CURVE_COLOR, lw=1.0, label="broadened")
+        curve = load_xy(broad)
+        ax.plot(*curve, color=CURVE_COLOR, lw=1.0, label="broadened")
     if sticks.exists():
         nu, inten = load_xy(sticks)
         ax.vlines(nu, 0, inten, color=STICK_COLOR, lw=0.8, label="sticks")
     ax.set_xlabel(r"Wavenumber (cm$^{-1}$)")
     ax.set_ylabel(r"IR intensity (km mol$^{-1}$)")
-    headroom(ax)
+    headroom(ax, 1.3)
+    if curve is not None and ir_labels > 0:
+        label_ir_peaks(ax, folder, curve[0], curve[1], ir_labels)
     ax.legend(loc="upper right")
+    return True
 
 
-def plot_dos(ax, folder):
+def plot_dos(ax, folder, **_):
     """Total DOS from Multiwfn, energy in eV."""
     tdos = folder / "dos_tdos.dat"
-    if tdos.exists():
-        e, y = load_xy(tdos)
-        ax.plot(e, y, color=DOS_COLOR, lw=1.0)
-        ax.fill_between(e, 0, y, color=DOS_FILL, lw=0)
+    if not tdos.exists():
+        return False
+    e, y = load_xy(tdos)
+    ax.plot(e, y, color=DOS_COLOR, lw=1.0)
+    ax.fill_between(e, 0, y, color=DOS_FILL, lw=0)
     ax.set_xlabel("Energy (eV)")
     ax.set_ylabel("TDOS (arb. units)")
+    return True
 
 
-def main(argv=None):
-    args = parse_args(argv)
-    folder = args.dir.resolve()
+PLOTTERS = {"uvvis": plot_uvvis, "ir": plot_ir, "dos": plot_dos}
 
-    missing = [name for name in ("uvvis_broadened.dat", "ir_broadened.dat", "dos_tdos.dat")
-               if not (folder / name).exists()]
-    for name in missing:
-        print(f"warning: {name} not found in {folder}", file=sys.stderr)
 
-    plt.rcParams.update(BASE_RC)
-    width = WIDTH_MM[args.width] / 25.4
-    height = HEIGHT_MM / 25.4
-    fig, axes = plt.subplots(1, 3, figsize=(width, height), constrained_layout=True)
-
-    plot_uvvis(axes[0], folder)
-    plot_ir(axes[1], folder)
-    plot_dos(axes[2], folder)
-    for ax, letter in zip(axes, "abc"):
-        panel_label(ax, letter)
-
-    stem = Path(args.output)
+def save_figure(fig, stem):
+    """EPS vector master plus a 300 dpi PNG preview."""
     eps_path = stem.with_suffix(".eps")
     png_path = stem.with_suffix(".png")
     fig.savefig(eps_path, format="eps")
     fig.savefig(png_path, dpi=PREVIEW_DPI)
     print(f"wrote {eps_path.resolve()} (vector master)")
     print(f"wrote {png_path.resolve()} (preview)")
+
+
+def main(argv=None):
+    args = parse_args(argv)
+    folder = args.dir.resolve()
+    plt.rcParams.update(BASE_RC)
+    width = WIDTH_MM[args.width] / 25.4
+
+    names = [args.only] if args.only else list(PLOTTERS)
+    for name in names:
+        fig, ax = plt.subplots(figsize=(width, width * HEIGHT_RATIO), constrained_layout=True)
+        if PLOTTERS[name](ax, folder, ir_labels=args.ir_labels):
+            save_figure(fig, Path(f"{args.output}_{name}"))
+        else:
+            print(f"warning: no {name} data found in {folder}, figure skipped", file=sys.stderr)
+        plt.close(fig)
 
 
 if __name__ == "__main__":
