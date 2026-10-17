@@ -114,3 +114,6 @@ Conteúdo: [define](#define-e-input) · [Funcionais/TD-DFT](#funcionais-e-propri
 
 
 - **2026-10-17 — `vib_normal_modes` é largura fixa** (componente cols 1-3, bloco de 5 modos cols 4-5): a partir do bloco 10 os campos se encostam (`  710`) e `split()` descarta a linha. Leitor antigo do `ir_mode_assign.py` lia só 45 modos (moléculas com >15 átomos); picos acima do modo 45 nunca eram rotulados. Corrigido; leitor novo valida 3N×3N. Figuras de IR geradas antes disso precisam ser refeitas.
+
+## Validar `dscf -proper` por "dscf : all done" (2026-10-17, metal-complexos)
+`run_metal_complex_stages.sh` marcou `.stages/FAILED` em Ni/Zn com `pop.out` válido: "ended normally" vai ao stderr, no stdout só `dscf : all done`. Qualquer `fresh_ok` sobre `.out` deve usar esse padrão; um FAILED falso derruba o sucessor do trio (round 2 abortou).
