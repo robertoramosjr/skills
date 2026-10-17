@@ -4,7 +4,7 @@
 Reads the fixed-width DOS_curve.txt written by Multiwfn menu 10 -> 3, with
 N fragments defined in the `-1 Define fragments` menu (SCPA, element or
 element x angular momentum). Columns: energy (a.u.) | TDOS | OPDOS(1,2) |
-fragment 1..10. Multiwfn glues columns when a value is negative, so the file is
+fragment 1..10 (no OPDOS column with Becke: use --no-opdos). Multiwfn glues columns when a value is negative, so the file is
 read by field width, never with split(). The curves are converted to eV, written
 as a plain dataset (<output>.dat) and drawn as an EPS vector master plus a
 300 dpi PNG preview, same style as plot_spectra.py.
@@ -71,6 +71,11 @@ def parse_args(argv=None):
     p.add_argument("--orginfo", type=Path, help="orginfo.txt, to mark the HOMO")
     p.add_argument("--width", choices=sorted(WIDTH_MM), default="single")
     p.add_argument("--xlim", nargs=2, type=float, default=[-20.0, 2.0], metavar=("EMIN", "EMAX"))
+    p.add_argument("--no-opdos", action="store_true",
+                   help="curve has no OPDOS column (Becke/Hirshfeld; SCPA/Mulliken with >=2 fragments do)")
+    p.add_argument("--normalize", action="store_true",
+                   help="rescale fragments point by point so they sum to the TDOS (Becke: the numerical "
+                        "integration leaves 1-35 %% of the density unassigned)")
     p.add_argument("--no-tdos", action="store_true", help="omit the TDOS background")
     p.add_argument("--ylabel", default="DOS (arb. units)")
     return p.parse_args(argv)
@@ -80,7 +85,11 @@ def main(argv=None):
     a = parse_args(argv)
     data = read_curve(a.curve)
     n = len(a.labels)
-    energy, tdos, frags = data[:, 0], data[:, 1], data[:, 3:3 + n]
+    energy, tdos, frags = data[:, 0], data[:, 1], data[:, (2 if a.no_opdos else 3):(2 if a.no_opdos else 3) + n]
+
+    if a.normalize:
+        total = frags.sum(axis=1)
+        frags = frags * np.divide(tdos, total, out=np.zeros_like(tdos), where=total > 0)[:, None]
 
     header = "energy_eV TDOS " + " ".join(l.replace(" ", "_") for l in a.labels)
     np.savetxt(f"{a.output}.dat", np.column_stack([energy, tdos, frags]), fmt="%.6g", header=header)
