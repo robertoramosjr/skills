@@ -75,4 +75,4 @@ Armadilhas: `parse_bader.ATOMIC_NUMBER` só ia até Ca (corrigido para Sc–Zn; 
 
 ## 5. Figuras (Estágio 3)
 
-Veusz via `veusz_env` (`~/.conda/envs/veusz_env/bin/python`), com `LC_ALL=C` (ponto decimal). Scripts `veusz/plot_*.py`. Cada molécula tem listas próprias (`PANELS` do RDF, rótulos de ligação); versões específicas da artepilina C estão hardcoded — não reaproveite sem revisar. Figura em branco = dataset errado ou nome de coluna divergente (`head -1`). Renderização 3D/2D de estrutura: ambiente `vasp_env` (rdkit/ase/povray). Veusz pode estar ausente em alguns envs — `plot_*_matplotlib.py` existem como alternativa.
+Movido para a skill `turbo_plot` (`~/.claude/skills/turbo_plot/SKILL.md`): ferramentas (Veusz × matplotlib), entradas e unidades, regras de locale e ambiente, e verificação da figura.

@@ -16,13 +16,13 @@ Confirmado nesta data: na raiz estão `xyz_to_coord.py`, `setup_hse06_opt_templa
 | Extração | `parse_bader.py`, `parse_excitations.py`, `parse_ir.py`, `parse_mulliken.py`, `parse_bond_order.py`, `parse_dos.py`, `parse_becke_pdos.py`, `parse_dos_scpa.py`, `parse_scpa_pdos_angular.py`, `parse_qpenergies_dos.py`, `parse_homo_lumo.py`, `compute_rdf.py`, `compare_charges.py`, `group_average_charges.py`, `compute_exciton_binding.py`, `compare_functionals.py`, `compare_low_states.py`, `convergence_table.py` |
 | ML / auditoria | `apply_b1_model.py`, `apply_b2_osc_surrogate.py`, `audit_b1_features.py`, `permutation_test_b1_features.py`, `feature_selection_protocol.md`, `estimate_model_gap_impact.py`, `build_b2_consolidated_dataset.py`, `analyze_stda_state_selection.py` |
 | Termodinâmica | `run_freeh_thermal_correction.py`, `setup_cosmo_job.py`, `extract_cosmo_energy.py`, `compute_pka_thermodynamic_cycle.py`, `assemble_state_pka_thermo.py`, `calibrate_pka_pair.py`, `summarize_pka_calibration.py`, `job_reference_compound_pipeline.sh` |
-| Espectros/figuras | `build_population_weighted_spectrum.py`, `predict_uvvis_vs_ph.py`, `plot_speciation_vs_ph.py`, `veusz/plot_*.py`, `plot_b2_final_spectrum_matplotlib.py`, `render_cube_isosurface.py`, `prepare_paper2_3d_assets.py` |
+| Espectros (construção) | `build_population_weighted_spectrum.py`, `predict_uvvis_vs_ph.py` |
+| Figuras | ver skill `turbo_plot` (scripts de plot, Veusz, isosuperfícies, 3D) |
 
 ## Convenções
 
 - Docstring com `Usage:` no topo (vale como `--help`); `argparse`; nada hardcoded da molécula.
-- **Específicos de artepilina C** (não reaproveitar sem revisar): `veusz/plot_bond_order_artepillinC.py`, `plot_bond_order_structure_artepillinC.py`, `plot_molecule_vesta_style.py`.
-- `veusz/plot_dos.py` e `veusz/plot_rdf.py` têm flags locais (`--element4-label`, `--homo-lumo`, `--columns`) que um merge do upstream já derrubou — conferir flags antes de aceitar versão remota.
-- Dependências: parsers só `numpy`; Veusz embedding via `veusz_env`; rdkit/ase/povray só em `vasp_env`.
+- Scripts de figura (Veusz, matplotlib, específicos de artepilina C, flags de `plot_dos`/`plot_rdf`, dependências de rdkit/ase/povray) estão na skill `turbo_plot`.
+- Dependências: parsers só `numpy`.
 - Documentos companheiros no repo: `MANUAL.md` (fluxo completo), `README.md` (referência dos scripts), `pipeline_extracao_dft.md` (checklist), `protonation_and_conformer_investigation.md` (registro narrativo do Paper 2), `feature_selection_protocol.md`.
 - Espectros/Raman/jobs coaraci (versionados em `robertoramosjr/turbomole`, pasta `scripts/`): `tm_spectra.py` (IR `vibspectrum` + UV-vis `exspectrum` → `.dat`; `--ir-scale`, `--uv-fwhm`) · `tm_dos.py` (tm2molden + Multiwfn → `dos_tdos.dat`, gap) · `job_raman_egrad_gpu.sh` · `job_gpu_aoforce_test.sh` · `job_dscf_pop_seq.sh` · `run_metal_complex_stages.sh` + `job_metal_complex_trio.sh`. Argparse, agem na pasta atual.

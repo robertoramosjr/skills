@@ -46,7 +46,7 @@ xyz ──► coord (xyz_to_coord.py) ──► define (templates setup_*_templa
                                    CREST/GFN2 → peso×degenerescência → r2SCAN-3c → HSE06
 Estágio 1  jobex → ridft/escf/aoforce/dscf -proper  (references/stages.md)
 Estágio 2  parsers → datasets .dat/.csv            (references/scripts-map.md)
-Estágio 3  figuras Veusz                           (LC_ALL=C; env veusz_env)
+Estágio 3  figuras                                  (skill `turbo_plot`)
 Termodinâmica / pKa (opcional)                     (references/thermo-pka.md)
 ```
 
