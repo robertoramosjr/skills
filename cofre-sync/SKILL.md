@@ -15,7 +15,7 @@ Ferramenta: `python3 ~/cofre/tools/cofre.py {start|pending|check|retire}`. Regra
 3. `00_State/running_jobs.md`: job novo (id, máquina, projeto, dir, próximo passo); terminado → "Concluídos" (≤6; excedente → `04_Archive/jobs/AAAA-MM.md`). Só ativos ficam em "Rodando".
 4. Lição de método/bug genérico → skill do código (`references/gotchas.md`, com data), não no cofre.
 5. `python3 ~/cofre/tools/cofre.py check` — corrigir tudo que reclamar (tetos, status ausente, pendência sem data/envelhecida).
-6. `git add -A && git commit && git push` (cofre e, se editou, `~/skills`).
+6. `git add -A && git commit && git push` no cofre **e sempre também em `~/skills`** (skills são código vivo: `git -C ~/skills status` a cada fim de sessão; se houver mudança, commit + push; se estiver limpo, confirmar que `origin/main` está em dia). Skill nova/alterada nesta sessão só vale em outras máquinas depois do push. Reportar os dois hashes.
 
 ## B. Aposentar projetos concluídos
 1. `cofre.py check` lista `concluido` (prontos) e `start` lista `revisar` (a decidir). Para candidatos, **perguntar ao usuário** (AskUserQuestion): "X está concluído?". Não presumir.

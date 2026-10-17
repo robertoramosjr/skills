@@ -46,14 +46,19 @@ def read_coord(path):
 
 
 def read_modes(path, n_atoms):
-    rows = {}
-    for l in open(path):
-        p = l.split()
-        if len(p) >= 3 and p[0].isdigit() and p[1].isdigit():
-            rows.setdefault(int(p[0]), {})[int(p[1])] = [float(x.replace("D", "E")) for x in p[2:]]
+    """L (3N, 3N), coluna k = modo k. Campos de LARGURA FIXA: componente cartesiana nas colunas 1-3, bloco de 5 modos
+    nas colunas 4-5, depois até 5 valores. A partir do bloco 10 os dois campos se encostam ('  710'), então um
+    split() descarta essas linhas e só os 45 primeiros modos são lidos (corrigido 2026-10-17)."""
     nr = 3 * n_atoms
-    L = np.array([sum([rows[r][b] for b in sorted(rows[r])], []) for r in range(1, nr + 1)])
-    return L  # (3N, nmodes)
+    L = np.full((nr, nr), np.nan)
+    for l in open(path):
+        if l.startswith("$") or not l.strip(): continue
+        row, block = int(l[:3]), int(l[3:5])
+        for off, x in enumerate(l[5:].split()):
+            L[row - 1, 5 * (block - 1) + off] = float(x.replace("D", "E"))
+    if np.isnan(L).any():
+        raise ValueError(f"{path}: vib_normal_modes incompleto ({int(np.isnan(L).sum())} componentes faltando de {L.size})")
+    return L  # (3N, 3N)
 
 
 def neighbors(el, xyz):

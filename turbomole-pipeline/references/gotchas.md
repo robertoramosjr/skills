@@ -112,3 +112,5 @@ Conteúdo: [define](#define-e-input) · [Funcionais/TD-DFT](#funcionais-e-propri
 - **UV-vis**: o `exspectrum` só vai até o último estado do `$soes`; abaixo disso o espectro ampliado não é confiável (Ni: 30 estados, até 283 nm). `scripts/tm_spectra.py` (IR + UV-vis).
 - Termoquímica: o Hessian da GPU basta para `freeh` (entrada em branco, 298,15 K, 0,1 MPa); sem imaginárias no Ni (menor modo 32 cm⁻¹).
 
+
+- **2026-10-17 — `vib_normal_modes` é largura fixa** (componente cols 1-3, bloco de 5 modos cols 4-5): a partir do bloco 10 os campos se encostam (`  710`) e `split()` descarta a linha. Leitor antigo do `ir_mode_assign.py` lia só 45 modos (moléculas com >15 átomos); picos acima do modo 45 nunca eram rotulados. Corrigido; leitor novo valida 3N×3N. Figuras de IR geradas antes disso precisam ser refeitas.
