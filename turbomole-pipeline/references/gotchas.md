@@ -117,3 +117,6 @@ Conteúdo: [define](#define-e-input) · [Funcionais/TD-DFT](#funcionais-e-propri
 
 ## Validar `dscf -proper` por "dscf : all done" (2026-10-17, metal-complexos)
 `run_metal_complex_stages.sh` marcou `.stages/FAILED` em Ni/Zn com `pop.out` válido: "ended normally" vai ao stderr, no stdout só `dscf : all done`. Qualquer `fresh_ok` sobre `.out` deve usar esse padrão; um FAILED falso derruba o sucessor do trio (round 2 abortou).
+
+- (2026-10-19) SH nativo: `maxlog` do `mdmaster` ($log_history) NÃO controla os grupos de SH ($population_el, $prob_fssh, $sh_coeffs, $egradmon têm `maxlog= 256` no próprio control). Subir só o do mdmaster não evitou a morte dos trans no passo 256 (control truncado, 5/5). Teste de hipótese de log-rolagem tem de mudar TODOS os maxlog.
+- (2026-10-19) SLURM COMPLETED ≠ trajetória boa: jobs de SH saem com exit 0 mesmo com SIGSEGV no S0; validar com `summarize_sh_traj.py` (status hop_ok). `$actual step ridft` residual não é a causa única do SIGSEGV pós-salto (gerador v2 ainda morre no 1º quadro de S0).
