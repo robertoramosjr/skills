@@ -17,7 +17,8 @@ Fluxo reaproveitável de **geometria → cálculo → extração → figura** pa
 4. **Valide por TEXTO, nunca por exit code.** `freeh`, `ridft`, `aoforce`, `escf` retornam 0 com "ended abnormally". Estágio com tempo ≈ 0 s = falhou. `sacct` COMPLETED também não prova nada: conte os marcadores (`GEO_OPT_CONVERGED` vs `GEO_OPT_FAILED`) por diretório. Grep: `"ended normally"`, `"all done"`, e ausência de `"ended abnormally\|did not converge"`.
 5. **Jobs só sob `/home/rramos/work_turbomole/...`** (FS compartilhado). `/tmp` e o scratchpad do Claude não são vistos pelos nós — o job morre em 0 s sem `job.out`. Listas de jobs de array: caminho absoluto no FS compartilhado.
 6. **Scripts novos:** inglês, `argparse`, modulares, sem hardcode, docstring com `Usage:`, rodáveis a partir da pasta do cálculo; testar antes de entregar. Ficam em `~/work_turbomole/scripts/` (repo git).
-7. **Nunca comparar energia absoluta entre estados de carga diferente** sem ciclo termodinâmico de referência.
+7. **GATE DE ESTABILIDADE DA FUNÇÃO DE ONDA (obrigatório antes de qualquer propriedade).** Metal de transição, camada aberta, singleto de gap pequeno (HOMO-LUMO < ~1 eV) ou qualquer sistema cujas cargas/spin/espectro serão reportados: rodar o teste de instabilidade + broken-symmetry (`references/stages.md` §1c) **numa cópia do `GEO_OPT_CONVERGED`** e gravar `.stages/STABILITY_OK` (E_restrito, E_BS, ΔE, ⟨S²⟩). Sem esse arquivo, `escf`/`aoforce`/NumForce/`dscf -proper`/Bader/cargas **não rodam e nada é reportado** — resultado sem o gate é provisório. Se o BS ficar abaixo do restrito (ΔE < −1e-5 Eh) ou o UHF estiver instável, a solução do estado fundamental mudou: geometria, frequências, população e espectros **são refeitos** a partir dela. Dispersão grande entre Mulliken/Löwdin/NPA/PABOON é sintoma a investigar com este gate, não só diferença de método.
+8. **Nunca comparar energia absoluta entre estados de carga diferente** sem ciclo termodinâmico de referência.
 
 ## 1. Intake — perguntar/confirmar antes de montar qualquer coisa
 
@@ -57,10 +58,11 @@ Termodinâmica / pKa (opcional)                     (references/thermo-pka.md)
 Use os `setup_*_template.py` (automatizam o `define` via pexpect/PTY): `setup_hse06_tzvp_template.py`, `setup_hse06_opt_template.py` (opt tight Paper 1), `setup_r2scan3c_template.py`, `setup_pbe0_svp_template.py`, `setup_gw_bse_template.py`, `setup_metal_complex_template.py`. Heredoc cego no `define` entra em loop infinito de menu; resetar `control/basis/auxbasis/mos` a cada tentativa. Depois confira o `control` à mão contra a lista do Paper 1.
 
 ### Estágio 1 — cálculos (resumo; comandos completos em `references/stages.md`)
+0. **Gate de estabilidade/broken-symmetry (regra 7)** — antes de otimizar caro e antes de qualquer propriedade; para metal-complexos é o primeiro passo no `control` de partida.
 1. `jobex -c 800` → exigir `GEO_OPT_CONVERGED`. Cap baixo (`-c 10/40`) só em triagem descartável; reotimização que alimenta G/pesos/espectro é produção. Se atingir o cap (`GEO_OPT_FAILED`): `rm GEO_OPT_FAILED not.converged` e reexecutar — continua da geometria atual; o estado sobrevive a `scancel`/TIMEOUT.
 2. `ridft` (SCF) → `ridft -proper` (cubo p/ Bader) → Bader → **restaurar `control`** → `ridft` apertado.
 3. `escf` (TD-DFT, `rpas`, `$soes a <N>` = **contagem**), `aoforce` (IR; checar imaginárias), `dscf -proper` com `$pop` (Mulliken/SEN).
-4. Opcionais: DOS/PDOS, Becke/SCPA (Multiwfn), broken-symmetry, GW-BSE, NTO/HOMO-LUMO cubos, Raman.
+4. Opcionais: DOS/PDOS, Becke/SCPA (Multiwfn), GW-BSE, NTO/HOMO-LUMO cubos, Raman.
 
 Antes de seguir ao Estágio 2: `HOMO-LUMO Separation` em `proper.out`; `tail ACF.dat` (elétrons integrados ≈ Z total); sem frequência negativa em `vibspectrum`.
 
