@@ -15,6 +15,7 @@ Core points (rejected rewrite, 2026-10-15):
   caveat, link to the next result.
 - **Formal, flowing prose** with connectives (Consequently, Furthermore, In this context, Nevertheless, ...);
   hedged claims; no telegraphic sentences.
+- **Figure text size**: text inside images must print at the body-text size after compilation (10 pt); a figure scaled down in the layout (e.g. 178 mm grid at `\columnwidth`) fails this. Details in `references/user-style-comp-chem.md` §0.
 - **Preserve the user's paragraphs** (Abstract/Introduction/Methods untouched unless asked); increment, do not
   replace. Keep `\todo/\pending/\open` markers; contradictions with the data become `\todo{}` + a note in the chat.
 - The Output Contract below (outline, paragraph roles, checklists, claim-evidence map) goes **in the chat**, never

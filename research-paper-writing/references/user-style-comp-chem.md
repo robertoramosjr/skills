@@ -11,6 +11,22 @@ Origin (2026-10-15): a rewrite of Paper 2 that split each result into a short
 sentences, was rejected. The user wants data and discussion together, flowing
 prose, and every figure discussed.
 
+## 0. Font size in figures (mandatory, checked on the compiled PDF)
+
+- Text inside an image (labels, tick numbers, legends, panel letters, NTO/grid
+  annotations) must print at the **same size as the body text** of the paper
+  after compilation (revtex4-2 `aps,prb` default: 10 pt body; check the
+  `\documentclass` options if the class changes).
+- Printed size = source font size x (printed width / source width). A figure
+  rendered at 178 mm and included at `\columnwidth` (~86.7 mm) prints at ~0.49x:
+  a 10 pt label becomes ~4.9 pt. Fix the geometry, not only the font: render at
+  the width it will be printed at, or include it at `\textwidth` in a
+  `figure*` environment.
+- Check every new or changed figure: compute the scale factor from the
+  `\includegraphics` width and the source width, then confirm the label size.
+- **Why:** rule added 2026-10-20 after the NTO grids (main and SM) printed with
+  unreadable labels.
+
 ## 1. Structure
 
 - **"Results and Discussion" is one section.** Never split into Results +
