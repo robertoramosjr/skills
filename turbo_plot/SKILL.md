@@ -59,7 +59,23 @@ Os `.dat` são gerados pelo `tm_spectra.py` (IR/UV-vis) e pelo `tm_dos.py` (DOS)
 - **Picos de IR:** regra do Roberto (2026-10-16): rótulo do modo normal nos **5 picos mais intensos**, só o caráter (ex.: `γ(X–H)`), sem o número de onda. `scripts/ir_mode_labels.py` faz isso para complexos metálicos: decompõe a energia cinética de cada modo por papel do átomo (H–X, metal, átomo doador e seu parceiro, par N–N, esqueleto) e dá o caráter dominante. Rode `python ir_mode_labels.py --folder . --table` para ver as frações e conferir a sanidade (ν(X–H) em ~3000–3600, γ(C–H) em ~650–850, ν(C=N) em ~1600–1700). O `ir_mode_assign.py` da academic-figure-skill é só para corante azo e não conhece metais. Na legenda da figura, diga que é o caráter dominante (decomposição da energia cinética), não uma PED completa. Os picos rotulados ficam a pelo menos 100 cm⁻¹ um do outro para os textos verticais não colidirem.
 - **Formato do `vib_normal_modes`:** campos de largura fixa (componente nas colunas 1–3, bloco de 5 modos nas colunas 4–5). A partir do bloco 10 os campos se encostam (`  110`), então um `split()` perde essas linhas. Com `split` este arquivo (67 átomos) lê só 45 dos 201 modos.
 - **Veusz (alternativa de layout):** `LC_ALL=C` (ponto decimal); ambiente `veusz_env`. Locale pt_BR quebra a leitura de números.
-- **Renderização 3D/2D de estrutura e isosuperfícies** usam `vasp_env` (rdkit/ase/povray). Estrutura é raster de verdade: PNG 600 dpi dentro do EPS, sem moldura. Regras em `~/skills/academic-figure-skill/references/structure-renders.md`.
+- **Isosuperfícies de NTO/orbital (cubo):** ver seção 3D, `render_nto.py` (`render_env`).
+- **Renderização 3D/2D de estrutura** usa `render_env`/`vasp_env` (rdkit/ase/povray). Estrutura é raster de verdade: PNG 600 dpi dentro do EPS, sem moldura. Regras em `~/skills/academic-figure-skill/references/structure-renders.md`.
+
+## 3D. Isosuperfícies de NTO/orbital a partir de cubo (`render_nto.py`)
+
+Referência visual: `artepillin_C_studies/nto/conf_1_LUMO_82a.eps` (molécula bola-e-bastão no estilo VESTA + lóbulos translúcidos amarelo = +, ciano = −; o EPS de referência é um raster embutido, feito com VESTA).
+
+```bash
+~/.conda/envs/render_env/bin/python ~/.claude/skills/turbo_plot/scripts/render_nto.py <S1/nto_vir_1.cub> --iso 0.03 --width-mm 178 --dpi 300 -o <prefixo>   # .pov + .png + .eps
+```
+- **Método:** lê o cubo (`$pointval nto 1-2 fmt=cub`, de `job_nto_cubes.sh`; unidades em bohr, convertidas para Å), gera a malha com `skimage.measure.marching_cubes` (±iso), orienta a molécula com `orient()` do `render_structures.py` da academic-figure-skill (mesma regra de vista, a transformação é aplicada à malha por ajuste afim nos átomos) e renderiza no POV-Ray (`mesh2`, `rgbt` com transmit 0,55, sem sombra nos lóbulos). EPS = PNG dentro (Flate), validado com `gs -sDEVICE=nullpage`. Raster de verdade, por isso a regra "sem raster" do EPS vetorial não vale aqui.
+- **Ambiente `render_env`** (povray, ase, pillow, scipy) **+ `scikit-image`** (instalado com `pip install scikit-image`; não vem por padrão). O `paper2_funnel` e o `vasp_env` não são necessários.
+- **Arquivos:** `nto_occ_1.cub` = buraco (par 1), `nto_vir_1.cub` = elétron (par 1); `_2` = segundo par NTO. Um EPS por cubo.
+- **Isovalor:** 0,02 enche a figura de lóbulos pequenos em H e O; 0,03 (padrão sugerido) deixa só os lóbulos π relevantes. Use o mesmo valor em todas as figuras comparadas e diga-o na legenda.
+- `--step 2` (marching cubes mais grosso) e `--dpi 150` dão prévia em ~20 s; 300 dpi/step 1 para o master.
+- Testado em `vac/A_job_0093/S1/nto_vir_1.cub` (2026-10-20).
+- Pendente de ajuste fino: a janela é centrada na origem (sobra margem em um lado); recorte/etiquetas `occ`/`vir` e grade de várias figuras ainda não implementados.
 
 ## 4. Outras regras
 
@@ -78,6 +94,7 @@ Os `.dat` são gerados pelo `tm_spectra.py` (IR/UV-vis) e pelo `tm_dos.py` (DOS)
 ## 6. Referências
 
 - `scripts/plot_spectra.py` — figuras de espectros de uma pasta, uma por resultado (`--help` para as opções).
+- `scripts/render_nto.py` — isosuperfícies de NTO/orbital de cubos `.cub` (VESTA-style, EPS+PNG).
 - `scripts/ir_mode_labels.py` — caráter dominante dos modos normais e rótulos dos picos de IR.
 - `~/skills/academic-figure-skill/references/` — detalhe de `typography.md`, `export-specs.md`, `journal-specs.md`, `color-palettes.md`, `ir-spectra.md`, `structure-renders.md`.
 - Mapa de scripts de figura do repo: `~/.claude/skills/turbomole-pipeline/references/scripts-map.md`, seção "Espectros/figuras".

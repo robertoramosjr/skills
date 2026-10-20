@@ -3,6 +3,8 @@ name: academic-figure-skill
 description: Academic-grade scientific figure creation for Nature/Cell/Science journals. Use when the user asks to create, polish, review, or export scientific figures for manuscript submission, including 3D molecular or crystal structure renders (ball-and-stick, VESTA-style, from .xyz) and conformer grids. DO NOT trigger for: interactive dashboards (Plotly/Bokeh/Altair), exploratory data analysis without publication intent, math function plots, pie charts, 3D data charts, PowerPoint slides, or Illustrator/Figma-first design. SKIP requests about statistical testing, data cleaning, literature review, or code debugging — these are not figure-making tasks.
 ---
 
+> **Ponteiro (Roberto):** isosuperfícies de **NTO/orbital a partir de cubo (`.cub`) do TURBOMOLE** NÃO estão aqui. O método (marching cubes + POV-Ray, estilo VESTA, EPS) está na skill **`turbo_plot`**, seção 3D, script `turbo_plot/scripts/render_nto.py`. Se o pedido for renderizar cubos/NTO/HOMO-LUMO, use `turbo_plot`. Este hub continua valendo para estrutura `.xyz` (`render_structures.py`), que o `render_nto.py` reutiliza.
+
 # Academic Figure Skill Hub
 
 Academic Figure Skill generates publication-grade scientific figures for Nature/Cell/Science family journals. Every figure starts from the scientific question, not from a template.
