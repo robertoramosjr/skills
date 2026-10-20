@@ -71,11 +71,21 @@ Referência visual: `artepillin_C_studies/nto/conf_1_LUMO_82a.eps` (molécula bo
 ```
 - **Método:** lê o cubo (`$pointval nto 1-2 fmt=cub`, de `job_nto_cubes.sh`; unidades em bohr, convertidas para Å), gera a malha com `skimage.measure.marching_cubes` (±iso), orienta a molécula com `orient()` do `render_structures.py` da academic-figure-skill (mesma regra de vista, a transformação é aplicada à malha por ajuste afim nos átomos) e renderiza no POV-Ray (`mesh2`, `rgbt` com transmit 0,55, sem sombra nos lóbulos). EPS = PNG dentro (Flate), validado com `gs -sDEVICE=nullpage`. Raster de verdade, por isso a regra "sem raster" do EPS vetorial não vale aqui.
 - **Ambiente `render_env`** (povray, ase, pillow, scipy) **+ `scikit-image`** (instalado com `pip install scikit-image`; não vem por padrão). O `paper2_funnel` e o `vasp_env` não são necessários.
-- **Arquivos:** `nto_occ_1.cub` = buraco (par 1), `nto_vir_1.cub` = elétron (par 1); `_2` = segundo par NTO. Um EPS por cubo.
-- **Isovalor:** 0,02 enche a figura de lóbulos pequenos em H e O; 0,03 (padrão sugerido) deixa só os lóbulos π relevantes. Use o mesmo valor em todas as figuras comparadas e diga-o na legenda.
+- **Arquivos:** `nto_occ_1.cub` = buraco (par 1), `nto_vir_1.cub` = elétron (par 1); `_2` = segundo par NTO (no Paper 2 o par 1 pesa 83–99,97 % da transição, então as grades usam só o par 1). Um EPS por cubo.
+- **Saídas por cubo:** `.pov` (cena editável), `.png`, `.eps` (PNG dentro) e **`.vesta`** para ajuste manual. O `.vesta` traz a estrutura no referencial do próprio cubo (sem reorientar), a célula = caixa da grade e `IMPORT_DENSITY` apontando o `.cub` por **caminho relativo** ao `.vesta` (mantenha o symlink `source/` ao lado). O `ISURF` NÃO é gravado (formato não verificado, VESTA não roda no cluster): no VESTA, Properties → Isosurfaces, "both signs", nível = isovalor usado, amarelo (+)/ciano (−), opacidade ~45 %. **Nunca abri um `.vesta` gerado aqui no VESTA**; se não abrir, reportar.
+- **Orientação determinística:** `prepare()` arredonda as coordenadas a 1e-3 Å antes de `orient()` (o sinal da normal por SVD pode virar com ruído de 1e-6 e girar a molécula 180° entre o cubo do buraco e o do elétron).
+- **Isovalor:** 0,02 enche a figura de lóbulos pequenos em H e O; **0,03 é o padrão**. Use o mesmo valor em todas as figuras comparadas e diga-o na legenda.
 - `--step 2` (marching cubes mais grosso) e `--dpi 150` dão prévia em ~20 s; 300 dpi/step 1 para o master.
-- Testado em `vac/A_job_0093/S1/nto_vir_1.cub` (2026-10-20).
-- Pendente de ajuste fino: a janela é centrada na origem (sobra margem em um lado); recorte/etiquetas `occ`/`vir` e grade de várias figuras ainda não implementados.
+
+### Grades (`nto_grid.py`)
+```bash
+~/.conda/envs/render_env/bin/python ~/.claude/skills/turbo_plot/scripts/nto_grid.py --nto-root <nto> \
+   --rows vac/N_job_0044:2:N vac/A_job_0093:23:A -o <saida> --width-mm 178     # dir:raiz:rótulo
+```
+Linhas = (estado, raiz); colunas = buraco | elétron (par 1). **Mesma escala em todas as células** (janela comum = maior extensão), moldura ausente, rótulos `a)`, `b)` em negrito (STIX, 10 pt no tamanho final), λ, f e peso do par 1 em cada linha (lidos de `escf.out`/`dftnto.out`), legenda de fases + isovalor embaixo. Saída `.png` + `.eps` (PNG dentro); células soltas em `<saida>_cells/`.
+- Convenção do Paper 2 (`Figures/nto/render_grids.sh`): **principal** = uma grade em vácuo (N, A, B, D) e uma em água (N, A), cada estado na raiz de maior f; **suplementar** = uma grade por (ambiente, estado) com todas as raízes calculadas.
+- Testado em `vac/A_job_0093/S1/nto_vir_1.cub` e nas grades do Paper 2 (2026-10-20).
+- Pendente: recorte da margem entre linhas, etiquetas de orbital (HOMO/LUMO) e grade com mais de 2 colunas.
 
 ## 4. Outras regras
 
@@ -94,7 +104,8 @@ Referência visual: `artepillin_C_studies/nto/conf_1_LUMO_82a.eps` (molécula bo
 ## 6. Referências
 
 - `scripts/plot_spectra.py` — figuras de espectros de uma pasta, uma por resultado (`--help` para as opções).
-- `scripts/render_nto.py` — isosuperfícies de NTO/orbital de cubos `.cub` (VESTA-style, EPS+PNG).
+- `scripts/render_nto.py` — isosuperfícies de NTO/orbital de cubos `.cub` (VESTA-style, EPS+PNG+.vesta).
+- `scripts/nto_grid.py` — grades de renders de NTO (buraco | elétron) em escala comum.
 - `scripts/ir_mode_labels.py` — caráter dominante dos modos normais e rótulos dos picos de IR.
 - `~/skills/academic-figure-skill/references/` — detalhe de `typography.md`, `export-specs.md`, `journal-specs.md`, `color-palettes.md`, `ir-spectra.md`, `structure-renders.md`.
 - Mapa de scripts de figura do repo: `~/.claude/skills/turbomole-pipeline/references/scripts-map.md`, seção "Espectros/figuras".
