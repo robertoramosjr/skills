@@ -21,26 +21,27 @@ Core points (rejected rewrite, 2026-10-15):
 - The Output Contract below (outline, paragraph roles, checklists, claim-evidence map) goes **in the chat**, never
   into the manuscript.
 
-## Versioning (mandatory for every `.tex` of the user's papers, incl. `supp_*.tex`; rule set 2026-10-21)
+## Versioning (mandatory for every `.tex` of the user's papers, incl. `supp_*.tex`; rule set 2026-10-21, dotted scheme confirmed by user)
 
 Applies to the main text and the supplement (e.g. `paper_2.tex`, `supp_paper_2.tex`), living in the paper root
 (e.g. `artepillin_C_studies/paper_2/`). The working file in the root always carries the latest version in its name.
 
-**Naming:** `<stem>_v<MAJOR>[.<P><T>].tex`, e.g. `paper_2_v1.tex`, `paper_2_v1.11.tex`, `supp_paper_2_v2.1.tex`.
+**Naming:** `<stem>_v<MAJOR>[.<PENDING>.<TODO>].tex`, dotted fields so counts may exceed 9:
+`paper_2_v1.tex`, `paper_2_v1.1.1.tex`, `supp_paper_2_v2.10.12.tex` (10 pendings and 12 todos since v2).
 - **MAJOR** (integer) +1 whenever something new is added, removed or restructured (relevant text, discussion,
-  sections, figures/tables). Decimals reset to none on a new major (v1.23 -> v2).
-- **`.P` (tenths)** +1 for each `\pending{}` resolved (.1, .2, .3, ...).
-- **`.T` (hundredths)** +1 for each `\todo{}` inserted **or** resolved (.01, .02, ...).
-- No structural change, 1 pending + 1 todo resolved -> `v1.11`. Counts accumulate from the previous version
-  (v1.11 + one more pending -> v1.21). If a count would pass 9, stop and ask the user how to number it.
-- If a round mixes structural change with pending/todo work, the major bump wins (decimals reset).
+  sections, figures/tables). The other two fields reset: v1.3.5 -> v2 (written without the `.0.0`).
+- **PENDING** +1 for each `\pending{}` resolved.
+- **TODO** +1 for each `\todo{}` inserted **or** resolved.
+- Both fields are always written together once either is nonzero (`v1.0.2`, `v1.3.0`), never `v1.2`.
+- Counts accumulate from the previous version (v1.1.1 + one more pending -> v1.2.1).
+- If a round mixes structural change with pending/todo work, the major bump wins (other fields reset).
 
 **Procedure (never skip, before touching the file):**
 1. Copy the current file as is (same name, version included) to `old/` in the paper root (`mkdir -p old`). Never
    overwrite or edit anything in `old/`; if the name already exists there, stop and ask.
 2. Edit the root file in place.
 3. When done, `mv` it to the new name per the rules above, then tell the user: previous -> new version and the
-   tally (e.g. "2 pending + 1 todo resolved, 1 todo inserted -> v1.2 + .02"). Check that no other file (`\input`,
+   tally (e.g. "2 pendings + 1 todo resolved, 1 todo inserted -> v1.2.2"). Check that no other file (`\input`,
    scripts, plan docs, `CLAUDE.md`) still points to the old filename and update the references.
 4. If the root file is still unversioned (e.g. `paper_2.tex`), step 1 copies it to `old/` under that name and the
    first renamed result is `<stem>_v1...` (or `_v2` if the round is structural), as above.
