@@ -125,3 +125,8 @@ Conteúdo: [define](#define-e-input) · [Funcionais/TD-DFT](#funcionais-e-propri
 
 ## SIGSEGV determinístico do `ridft` com COSMO numa geometria (2026-10-21, artepilina B c0026)
 `jobex` morre com `forrtl: severe (174) SIGSEGV` em `vcl_ll_cos`/`vspdf_cosmo` (cavidade COSMO) e o jobex reporta só "ERROR in dscf step". Reproduz em serial e com `OMP_STACKSIZE=4G`, então NÃO é thread/stack/estado sujo: é a geometria exata do ciclo (já havia ocorrido no ciclo 49 do mesmo conformero). Correção que funcionou: ruído de ±1e-3 bohr em todas as coordenadas do `coord` (backup antes), `rm GEO_OPT_FAILED not.converged` e reenviar; E muda ~1e-5 Eh. Diagnóstico barato: `ridft` único em cópia (control/coord/basis/auxbasis/mos) via sbatch, 3–5 s por teste. Sempre ler `jobex.out` (o SIGSEGV está lá, não no `slurm_*.error` vazio).
+
+## Formato de `vib_normal_modes` e G_térmica por xtb (2026-10-21, Paper 2)
+- `vib_normal_modes` do `aoforce` é **largura fixa**: coordenada (i3), bloco (i2), até 5 valores por linha (5 modos/bloco, 3N linhas/bloco). Em 3 dígitos as colunas colam ("110" = coord 1, bloco 10): `split()` falha; usar `line[:3]`, `line[3:5]`, `line[5:]`.
+- Fonte barata de G_térmica sem `aoforce`: `xtb mol.xyz --gfn 2 --chrg Q --bhess` (mRRHO de Grimme, funciona fora do mínimo xtb; o `--hess` puro pode dar imaginárias). `xtb` 6.6.1 vem em `$TURBODIR/bin/<sys>/xtb`. NumForce só tem níveis scf/ri/mp2/cc2/rirpa (manual §15 L8528); `freeh` é RRHO puro (L8520). Validar contra `freeh` HSE06 antes de usar (piloto Paper 2, `5292001`).
+- `aoforce` HSE06/def2-TZVP, 46 átomos, 16 CPUs: 1 h 43–1 h 55 medidos (≈27–31 núcl-h); exige mínimo do MESMO nível (reopt HSE06 em gás antes se a geometria é r2SCAN-3c).
