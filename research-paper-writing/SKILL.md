@@ -21,6 +21,30 @@ Core points (rejected rewrite, 2026-10-15):
 - The Output Contract below (outline, paragraph roles, checklists, claim-evidence map) goes **in the chat**, never
   into the manuscript.
 
+## Versioning (mandatory for every `.tex` of the user's papers, incl. `supp_*.tex`; rule set 2026-10-21)
+
+Applies to the main text and the supplement (e.g. `paper_2.tex`, `supp_paper_2.tex`), living in the paper root
+(e.g. `artepillin_C_studies/paper_2/`). The working file in the root always carries the latest version in its name.
+
+**Naming:** `<stem>_v<MAJOR>[.<P><T>].tex`, e.g. `paper_2_v1.tex`, `paper_2_v1.11.tex`, `supp_paper_2_v2.1.tex`.
+- **MAJOR** (integer) +1 whenever something new is added, removed or restructured (relevant text, discussion,
+  sections, figures/tables). Decimals reset to none on a new major (v1.23 -> v2).
+- **`.P` (tenths)** +1 for each `\pending{}` resolved (.1, .2, .3, ...).
+- **`.T` (hundredths)** +1 for each `\todo{}` inserted **or** resolved (.01, .02, ...).
+- No structural change, 1 pending + 1 todo resolved -> `v1.11`. Counts accumulate from the previous version
+  (v1.11 + one more pending -> v1.21). If a count would pass 9, stop and ask the user how to number it.
+- If a round mixes structural change with pending/todo work, the major bump wins (decimals reset).
+
+**Procedure (never skip, before touching the file):**
+1. Copy the current file as is (same name, version included) to `old/` in the paper root (`mkdir -p old`). Never
+   overwrite or edit anything in `old/`; if the name already exists there, stop and ask.
+2. Edit the root file in place.
+3. When done, `mv` it to the new name per the rules above, then tell the user: previous -> new version and the
+   tally (e.g. "2 pending + 1 todo resolved, 1 todo inserted -> v1.2 + .02"). Check that no other file (`\input`,
+   scripts, plan docs, `CLAUDE.md`) still points to the old filename and update the references.
+4. If the root file is still unversioned (e.g. `paper_2.tex`), step 1 copies it to `old/` under that name and the
+   first renamed result is `<stem>_v1...` (or `_v2` if the round is structural), as above.
+
 ## Overview
 
 Use this skill to rewrite a research paper into a reviewer-friendly, high-clarity draft.
