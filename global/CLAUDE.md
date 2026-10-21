@@ -1,13 +1,14 @@
 # Regras globais (Roberto)
 
-## Skills (`~/skills`, `git@github.com:robertoramosjr/skills.git`)
-- Início de sessão: `git -C ~/skills pull` (sem o diretório: clonar e criar symlinks conforme o README do repo). Fim: sempre `git -C ~/skills status`; havendo mudança, `add/commit/push` (a skill `cofre-sync` cobra isso). Conflito: linha a linha, nunca `--theirs/--ours` cego.
-- Acione a skill do código (`turbomole-pipeline`, `vasp-pipeline`, `cp2k-pipeline`) quando faltar método, parâmetro ou armadilha — antes de adivinhar. Método fica nas skills; estado no cofre.
-- **Problema/método novo em TURBOMOLE:** consulte o manual oficial `~/skills/turbomole-pipeline/references/Turbomole_Manual_8-0.md` (`grep -n -i <keyword>`, nunca ler inteiro) antes de adivinhar ou testar no cluster; registre no plano o §/linha do manual que embasa cada hipótese.
+## Skills (`~/skills`)
+- Início: `git -C ~/skills pull`. Fim: `git -C ~/skills status`; mudou → add/commit/push. Conflito: linha a linha, nunca `--theirs/--ours`.
+- Faltou método, parâmetro ou armadilha → skill do código (`turbomole-pipeline`, `vasp-pipeline`, `cp2k-pipeline`) antes de adivinhar.
+- Problema novo em TURBOMOLE: `grep -n -i` no manual `~/skills/turbomole-pipeline/references/Turbomole_Manual_8-0.md` (nunca ler inteiro) antes de testar no cluster; citar no plano o §/linha.
 
-## Cofre (`~/cofre`): estado, pendências, jobs — protocolo em camadas (reestruturado 2026-10-14)
-- **Início de sessão (qualquer máquina):** `git -C ~/cofre pull && python3 ~/cofre/tools/cofre.py start` (painel de ~300 tokens). Quando o usuário indicar o projeto: `cofre.py start <projeto>` (nota-estado + jobs + pendências) e **só isso**. Não ler active_session, running_jobs, `_log/`, handoffs ou archive inteiros; nunca `cat` de pasta. Detalhe de log: `sed -n` pelo índice da nota.
-- **Pendências:** toda coisa a fazer vira `- [ ] (user|ia) texto — AAAA-MM-DD` em `## Pendente` da nota do projeto; nunca deixar só na conversa. `cofre.py pending [--user]` lista tudo (marca ENVELHECIDA >14 d).
-- **Fim de sessão/marco, "atualiza o cofre", "concluímos X":** skill `cofre-sync` (atualiza, confere pendências e tetos, aposenta concluídos, commit+push). Empurrar cedo. Regras completas para escrever: `~/cofre/PROTOCOL.md`.
-- **Cluster = gargalo (modus operandi fixo, `~/cofre/PROTOCOL.md` §4):** executar até a submissão do job, registrar no arquivo do plano (+ `running_jobs`), encerrar a vez; quando o usuário chamar, reler o plano, validar por texto e seguir. Nunca esperar em laço.
-- Um fato em um lugar só; `running_jobs` é memória (conferir `squeue`/`sacct`, dizer se está em outra máquina). Antes de editar o cofre: `git fetch` (outra máquina pode ter commitado). Handoffs imutáveis. Respostas curtas citando `[[nota]]`.
+## Cofre (`~/cofre`): estado, pendências, jobs
+- Início: `git -C ~/cofre pull && python3 ~/cofre/tools/cofre.py start`. Projeto indicado → `cofre.py start <proj>` e só isso; nunca ler estado, `_log/`, handoff ou archive inteiros.
+- Coisa a fazer → `- [ ] (user|ia) texto — AAAA-MM-DD` em `## Pendente` da nota; nunca só na conversa.
+- Fim, marco, "atualiza o cofre": skill `cofre-sync`. Regras de escrita: `~/cofre/PROTOCOL.md`.
+- Cluster: executar até o `sbatch` (custo antes), registrar no plano + `running_jobs`, encerrar a vez; nunca polling. Na volta: reler o plano, validar por texto.
+- Precedência: pedido atual > CLAUDE.md > skill > nota do cofre > memória local do Claude. Fato de projeto vai para o cofre (o Gemini e as outras máquinas não veem a memória local).
+- Um fato em um lugar só; `running_jobs` é memória (conferir `squeue`/`sacct`).

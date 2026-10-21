@@ -5,7 +5,7 @@ description: Atualiza o segundo cérebro (~/cofre) ao fim de sessão ou marco, g
 
 # cofre-sync — atualizar, não perder pendências, aposentar concluídos
 
-Ferramenta: `python3 ~/cofre/tools/cofre.py {start|pending|check|retire}`. Regras completas: `~/cofre/PROTOCOL.md` (ler antes de escrever). Um fato mora em UM lugar.
+Ferramenta: `python3 ~/cofre/tools/cofre.py {start|pending|check|retire|capture|inbox|lint|experience|propostas}`. Regras completas: `~/cofre/PROTOCOL.md` (ler antes de escrever). Um fato mora em UM lugar.
 
 ## A. Atualizar (fim de sessão / marco) — nesta ordem
 1. `git -C ~/cofre fetch && git -C ~/cofre pull` (conflito: linha a linha, nunca --theirs/--ours cego).
@@ -13,8 +13,10 @@ Ferramenta: `python3 ~/cofre/tools/cofre.py {start|pending|check|retire}`. Regra
    - sobrescrever estado/decisões/resultados obsoletos (com data); cronologia/diagnóstico longo → `_log/<proj>.md` (append) + 1 linha no índice da nota; `updated:` de hoje.
    - **Pendências:** varrer a conversa por "falta", "depois", "aguarda", "pendente", decisões adiadas, jobs a ler. Cada uma vira `- [ ] (user|ia) texto — AAAA-MM-DD` na seção `## Pendente`. As resolvidas viram `[x]`; as abandonadas `[~]` + motivo. Nunca deixar pendência só no chat.
 3. `00_State/running_jobs.md`: job novo (id, máquina, projeto, dir, próximo passo); terminado → "Concluídos" (≤6; excedente → `04_Archive/jobs/AAAA-MM.md`). Só ativos ficam em "Rodando".
+3b. **Inbox** (`cofre.py capture` e depois `cofre.py inbox`; captura automática de sessões do Claude e do Gemini): para cada linha, conferir `sacct -j <id>` na máquina indicada, levar o job/falha para `running_jobs` ou nota/plano (ou concluir que foi tentativa superada) e **apagar a linha**. Sessão "SEM cofre-sync" sem nada a registrar: apagar a linha.
 4. Lição de método/bug genérico → skill do código (`references/gotchas.md`, com data), não no cofre.
-5. `python3 ~/cofre/tools/cofre.py check` — corrigir tudo que reclamar (tetos, status ausente, pendência sem data/envelhecida).
+5. `python3 ~/cofre/tools/cofre.py check` (já inclui o lint) — corrigir tudo que reclamar (tetos, status ausente, pendência sem data/envelhecida, links, `contradicts:` aberto, duplicata nota↔skill, memória local com fato de projeto → mover p/ cofre e deixar ponteiro). Achado de que o fato mudou: reescrever na nota e, se outra nota diz o contrário, `contradicts: [[x]]` até reconciliar.
+5b. **Experiência** (quando o painel disser que está atrasada, ~14 d): `cofre.py experience`; para cada padrão real, 1 linha em `00_State/propostas.md` (`- [ ] AAAA-MM-DD → <skill>/<arquivo>: regra · evidência: hash data, hash data`), com ≥2 evidências. Mostrar ao usuário; `[x]` aprovado → copiar para a skill e apagar a linha; `[~]` + motivo fica (não repropor).
 6. `git add -A && git commit && git push` no cofre **e sempre também em `~/skills`** (skills são código vivo: `git -C ~/skills status` a cada fim de sessão; se houver mudança, commit + push; se estiver limpo, confirmar que `origin/main` está em dia). Skill nova/alterada nesta sessão só vale em outras máquinas depois do push. Reportar os dois hashes.
 
 ## B. Aposentar projetos concluídos

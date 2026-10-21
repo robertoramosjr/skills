@@ -26,6 +26,13 @@ CLAUDE.md global (versionado aqui em `global/CLAUDE.md`):
 [ -e ~/.claude/CLAUDE.md ] && [ ! -L ~/.claude/CLAUDE.md ] && mv ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.bak
 ln -sfn ~/skills/global/CLAUDE.md ~/.claude/CLAUDE.md
 ```
+Hooks do cofre (captura automática ao fim/compactação da sessão; ver `~/cofre/PROTOCOL.md` §6) — em `~/.claude/settings.json` de cada máquina:
+```json
+"hooks": {
+  "SessionEnd": [{"hooks": [{"type": "command", "command": "python3 ~/cofre/tools/cofre.py capture --hook", "timeout": 30}]}],
+  "PreCompact": [{"hooks": [{"type": "command", "command": "python3 ~/cofre/tools/cofre.py capture --hook", "timeout": 30}]}]
+}
+```
 Atualizar: `git -C ~/skills pull`. Regra de sessão (também no `~/.claude/CLAUDE.md`): `git pull` neste repo no início e commit+push no fim, como no cofre.
 
 ## Convenções
