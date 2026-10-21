@@ -12,6 +12,9 @@ Skills do Claude Code do Roberto (Turbomole, VASP, CP2K). Cada pasta é uma skil
 | `academic-figure-skill` | figuras científicas para Nature/Cell/Science (matplotlib/R, specs de revista, QA) (terceiros: TingxiYu/academic-figure-skill @1df9940; assets ~137 MB) |
 | `frontend-slides` | apresentações HTML animadas (16:9 fixo) ou conversão de PPTX→web; deploy Vercel, export PDF (terceiros: zarazhangrui/frontend-slides @9906a34, MIT) |
 
+## Manual do TURBOMOLE
+➡️ `turbomole-pipeline/references/Turbomole_Manual_8-0.md` (manual 8.0 em Markdown, 1,6 MB, versionado aqui para vir sempre com `git pull`). **Deve ser consultado (via `grep -n`) para buscar novos métodos e resolver problemas em TURBOMOLE antes de adivinhar.**
+
 ## Instalação (por máquina)
 ```bash
 git clone git@github.com:robertoramosjr/skills.git ~/skills

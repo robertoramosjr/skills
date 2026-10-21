@@ -1,4 +1,5 @@
 # Armadilhas, custos e ambiente
+> ➡️ Antes de adivinhar: `Turbomole_Manual_8-0.md` (mesma pasta) — `grep -n -i <keyword>`.
 
 Cada item veio de um erro real (TURBOMOLE 7.8.1 em `access`, 2026-08→10). Se descobrir uma nova, **acrescente aqui** com a data.
 

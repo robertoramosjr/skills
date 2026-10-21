@@ -9,6 +9,8 @@ Fluxo reaproveitável de **geometria → cálculo → extração → figura** pa
 
 **Por que esta skill existe:** cada regra abaixo foi descoberta por um erro real (jobs que "terminavam" em 0 s, `control` truncado, dados salvos sem `$pop`). O custo de repetir um erro aqui é horas de cluster ou um resultado inválido que parece válido. Leia as regras duras antes de submeter qualquer coisa.
 
+> ➡️ **MANUAL OFICIAL — consulte SEMPRE antes de adivinhar:** `references/Turbomole_Manual_8-0.md` (TURBOMOLE 8.0, ~16 mil linhas; versionado neste repo, vem no `git pull`). Para buscar novos métodos, keywords ou resolver qualquer problema/erro, **primeiro `grep -n` nele** (nunca ler inteiro): `grep -n -i "<keyword>" ~/skills/turbomole-pipeline/references/Turbomole_Manual_8-0.md` e `sed -n 'A,Bp'`. Âncoras: MD/frog `## 25.2.30 Keywords for Module frog`, `## 5.6 Molecular Dynamics`, surface hopping `## $surface\_hopping`, jobex `## 5.1.1 Options`, NAC `## 8.4.11 State-to-state`. O manual é 8.0; o cluster `access` roda 7.8.1 — conferir se a keyword existe na versão instalada.
+
 ## 0. Regras duras (do usuário — não renegociar)
 
 1. **Estime o custo (núcleo-h) e REPORTE antes de submeter** qualquer coisa além de poucos minutos de CPU. Estimativas iniciais estiveram 20–40× baixas para moléculas com rotores (metilas/OH/prenilas) — pecar para cima; âncoras em `references/gotchas.md#custos`.
