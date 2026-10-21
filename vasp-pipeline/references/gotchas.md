@@ -1,5 +1,7 @@
 # Armadilhas VASP e de dados
 
+- **Nunca lançar o VASP com `srun`** (2026-10-21): o binário é compilado com Intel/Intel MPI e só roda com `mpirun -np $SLURM_NTASKS vasp_std`. Uma versão antiga de `bash_stress.sh` (remoto, abr/2026) trocava `mpirun` por `srun` com o comentário "compat. Intel MPI" — errado; ao mesclar scripts, a versão com `mpirun` é a certa.
+
 - **Cópia acidental de resultados:** `CaSv_struc2` e `CaBa_struc2` tinham `vasprun.xml` MD5-idêntico a `Bav_struc2`. Rodar `md5sum */vasprun.xml | sort | uniq -w32 -d` antes de montar tabelas.
 - **Dois lotes incompatíveis** (`_struc` × `_OK`) divergindo 0,7–0,8 eV para estruturas com Ca (≈0,003–0,07 eV para vacâncias puras): comparar apenas dentro de um lote; documentar quando misturar.
 - **Slab com normal inclinada + `IDIPOL=3`** não convergia o SCF (mono ZrO2): célula com c ⟂ superfície e ∥ z.
