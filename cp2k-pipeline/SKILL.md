@@ -7,6 +7,8 @@ description: Pipeline, regras e fatos verificados para cálculos CP2K (GPW/Quick
 
 Pipeline reconstruído e versionado em `~/work_cp2k` (= `git@github.com:robertoramosjr/cp2k_scripts.git`, `main`; só código, dados nunca). Verificado contra a documentação oficial e contra builds reais (2025.1, 2026.1, 2026.2). Os detalhes completos estão em `references/` — este arquivo é o que se precisa antes de tocar em qualquer coisa.
 
+> ➡️ **MANUAL OFICIAL — consulte SEMPRE antes de adivinhar:** `references/CP2K_Manual_master-2026-10.md` (~51 mil linhas, 3,6 MB; versionado neste repo, vem no `git pull`). Para keyword, método ou erro novo, **primeiro `grep -n -i`** nele (nunca ler inteiro) e `sed -n 'A,Bp'`; o índice no topo dá a linha de cada página (Parte I, narrativa/tutoriais) e de cada `&SEÇÃO` de 1º nível (Parte II, referência de input: tipo, default, unit, opções, refs). Ex.: `grep -n "^- \`REL_CUTOFF\`" ...`; `grep -n '^#* &FORCE_EVAL/&DFT/&QS$' ...`. Fonte: docs/ do GitHub (master) + `cp2k_input.xml` do trunk (2026.2-dev); **access roda 2026.1 e coaraci 2025.1/2026.2** — conferir se a keyword existe na versão (schema `--xml` do binário). Regenerar: `references/build_cp2k_manual.py`.
+
 **Por que existe:** o pipeline foi reescrito duas vezes porque o desenho "VASP traduzido" estava inválido (PDOS com k-points não existe, `ADDED_MOS` 9× maior que o oficial, CELL_OPT a 100 bar por default). Toda decisão aqui tem uma prova (manual, schema `--xml` ou run real). Não re-derivar nem re-propor opções já fechadas (HFX com k-points, §5).
 
 ## 0. Regras duras
@@ -70,6 +72,8 @@ RI-HFXk (HSE06/PBE0 com k-points) é bloqueado por memória (38→390 GiB/rank c
 |---|---|
 | `references/pipeline-spec.md` | spec completa: achados 1.1–1.19, scripts 01–07, superfícies, HFX/PDOS |
 | `references/machines-facts-hfx.md` | regras de engajamento, máquinas, fatos verificados 2025.1/2026.1/2026.2, formatos de saída, HSE06/RI-HFXk, jobs |
+| `references/CP2K_Manual_master-2026-10.md` | manual oficial completo (narrativa + referência de keywords + bibliografia); só via `grep -n` |
+| `references/build_cp2k_manual.py` | regenera o manual acima (`<repo/docs> <cp2k_input.xml> <saida.md> <commit> <data>`) |
 | `references/zro2-slabs-lessons.md` | estudo de slabs ZrO2: decisões, números, armadilhas, forma de crescimento (Winterbottom) |
 
 ## Ao fechar uma etapa
