@@ -222,3 +222,8 @@ After exhausting every real avenue for hybrid-functional band structures on this
 - `CP2K_MODULE` uses `${CP2K_MODULE-default}` (NO colon): set-but-empty means "no module load, use CP2K_EXE as is" (with `:-` an empty value silently fell back to the default; fixed 2026-09-21).
 - job_bands_hybrid.sh (also runs the 00 probes): validates `SLURM_NTASKS % KP_NGROUPS` (KP_NGROUPS read from the input, default 1) -> `[ABORT]` exit 3; requires a `.kp` guess when the input has WFN_RESTART_FILE_NAME.
 - The jobs were generated from one template (scratchpad `make_jobs.py`, may be gone): edit the .sh files directly and keep the shared functions identical.
+
+## NEGF / transport (verified 2026-10-22, access cp2k/2026.1)
+- NEGF works in the access build: regtest `$CP2K/tests/QS/regtest-negf-1/H28.inp` (28-H chain, `RUN_TYPE NEGF`, `mpiexec -n 2`, login, 13 s) -> `NEGF run converged in 11 iteration(s)`, T(E_F)=0.999. Use it as the first smoke and as the template (`regtest-negf-2/H28_k.inp` = contact from a separate FORCE_EVAL with k-points). Manual: `&NEGF` at L49297 of CP2K_Manual.
+- Contacts: `&BULK_REGION` with two identical `&CELL` lists + `&SCREENING_REGION`; `&SCATTERING_REGION` = device. Outputs `*-transm-*.transm` (G0 units), `*.dos`.
+- Pitfalls: set `OMP_NUM_THREADS=1` for login tests (default threads oversubscribed: 11 min CPU in 110 s); `module load` inside a pipe is a subshell and does nothing.
