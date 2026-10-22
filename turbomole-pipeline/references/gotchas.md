@@ -132,3 +132,5 @@ Conteúdo: [define](#define-e-input) · [Funcionais/TD-DFT](#funcionais-e-propri
 - `aoforce` HSE06/def2-TZVP, 46 átomos, 16 CPUs: 1 h 43–1 h 55 medidos (≈27–31 núcl-h); exige mínimo do MESMO nível (reopt HSE06 em gás antes se a geometria é r2SCAN-3c).
 
 - 2026-10-21 (coaraci): `$gpgpu` no `control` faz o binário CPU abortar ("NO GPU FOUND", egrad ended abnormally em 3 s). Ao migrar uma cópia de dir GPU para CPU/par48-x: `sed -i '/^\$gpgpu/d' control` (feito em `job_raman_egrad_cpu.sh`). par48-x não tem GRES GPU: job com `gres/gpu` movido para lá fica `PENDING (BadConstraints)`.
+
+- (2026-10-22) SH nativo, reinício de MD: `jobex -ri -ex -md` com `nextstep=ridft` e `$nsteps N` retoma bem uma trajetória curta (127→131 quadros, control íntegro; 7.8.1). O 1º `ridft` do passo dscf-like pode sair "ended abnormally" sem impedir os ciclos. Snapshot de 256 ciclos (todos os `maxlog`=256 cheios) trunca o control para ~173 linhas no 1º `egrad` mesmo com `ridft` manual e `nextstep=egrad`; rota, tamanho do control e versão (7.8.1/8.0.1) não influem. Nenhuma corrida passou do ciclo 255 com `maxlog`≠256 (rolagem não descartada).
