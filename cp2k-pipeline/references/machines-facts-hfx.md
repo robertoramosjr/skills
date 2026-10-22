@@ -227,3 +227,4 @@ After exhausting every real avenue for hybrid-functional band structures on this
 - NEGF works in the access build: regtest `$CP2K/tests/QS/regtest-negf-1/H28.inp` (28-H chain, `RUN_TYPE NEGF`, `mpiexec -n 2`, login, 13 s) -> `NEGF run converged in 11 iteration(s)`, T(E_F)=0.999. Use it as the first smoke and as the template (`regtest-negf-2/H28_k.inp` = contact from a separate FORCE_EVAL with k-points). Manual: `&NEGF` at L49297 of CP2K_Manual.
 - Contacts: `&BULK_REGION` with two identical `&CELL` lists + `&SCREENING_REGION`; `&SCATTERING_REGION` = device. Outputs `*-transm-*.transm` (G0 units), `*.dos`.
 - Pitfalls: set `OMP_NUM_THREADS=1` for login tests (default threads oversubscribed: 11 min CPU in 110 s); `module load` inside a pipe is a subshell and does nothing.
+- NEGF run prints no `ENERGY| Total FORCE_EVAL`: `jobs/common.sh is_done` had marked it FAILED; fixed 2026-10-22 (success = `NEGF run converged`).
