@@ -64,6 +64,21 @@ Baseline limits still apply: no scrolling, no overflow, no overlapping panels, a
 
 ---
 
+## Versionamento de decks (obrigatório em toda edição de deck que já existe)
+
+Regra do Roberto (2026-10-22), adaptada do `research-paper-writing` (que vale para `.tex`). Só MAJOR: não há contadores de pending/todo em HTML.
+
+**Nome:** `<stem>_v<MAJOR>.html` (ex.: `index_v1.html`, `index_v2.html`). O arquivo de trabalho na pasta do deck sempre tem a versão mais nova no nome. PDF e PPTX seguem o mesmo nome (`export-pdf-pptx.py` usa o nome do HTML).
+
+**MAJOR** +1 quando há mudança estrutural: slide adicionado, removido ou reordenado, figura nova, troca de estrutura de um slide. Ajuste de texto, número ou cor dentro de um slide não sobe a versão. Se um pedido misturar os dois, vale o salto de MAJOR.
+
+**Procedimento (nunca pular, antes de tocar no arquivo):**
+1. Copiar o arquivo atual, com o nome que ele tem, para `old/` na pasta do deck (`mkdir -p old`). Nunca sobrescrever nem editar nada em `old/`; se o nome já existir lá, parar e perguntar.
+2. Editar o arquivo de trabalho no lugar.
+3. Ao terminar, renomear para a nova versão e avisar: "vN -> vN+1 (estrutural: sim/não)".
+4. Conferir se algum outro arquivo (notas do cofre, `CLAUDE.md`, plano, scripts de figura) ainda aponta para o nome antigo, e atualizar.
+5. Sem mudança estrutural, o nome não muda: edita-se o arquivo de trabalho, mas a cópia anterior continua indo para `old/` antes da edição.
+
 ## Phase 0: Detect Mode
 
 Determine what the user wants:
