@@ -26,6 +26,8 @@ Origem: pedido de 2026-10-16 no deck do azobenzeno (`work_turbomole/azobenzeno/a
 
 7. **Sempre entregar HTML + PDF + PPTX** (ver `scripts/export-pdf-pptx.py`). Se o cluster não tem Chromium/LibreOffice, o script usa Firefox headless. O PPTX é imagem por slide, com o texto nas notas.
 8. **A figura preenche a janela branca (`.plate`), sem faixas brancas sobrando.** Figuras de artigo (183 mm de largura, proporção ~1,8 a 3:1) numa janela mais alta ficam menores e com margem; isso incomoda. Gere uma **variante de slide** com a proporção da janela (receita abaixo) e deixe a figura do artigo intacta.
+10. **Concisão e charts (regra do Roberto, 2026-10-23: "SLIDES MUITO CARREGADOS COM TEXTO NÃO PRESTAM").** Slide de resultado é gráfico, diagrama, fluxograma ou esquema, com poucas palavras que lembrem o ponto principal ao apresentador. Parágrafo corrido vai para as notas do orador, não para o slide. Tabela só quando ela for a comparação em si (nosso × literatura), e curta.
+11. **Comparação entre funcionais, não um só.** Quando o deck mostra um resultado de cálculo, mostre-o para todos os funcionais calculados (ou diga na legenda qual não foi calculado). Mostrar só um funcional e depois benchmarkar os outros deixa a narrativa solta. Antes de montar, confirme no plano quais propriedades existem para cada funcional.
 9. Conferir no render: nada estoura o cartão, nada cobre o rodapé. Na dúvida, fonte ≥ 24 px (palco 1920×1080).
 
 ## Como verificar referências (receita que funcionou)

@@ -105,6 +105,15 @@ When enhancing existing presentations, fixed-stage fitting is the biggest risk:
 
 ## Phase 1: Content Discovery (New Presentations)
 
+### Passo 0 (obrigatório): plano narrativo antes de montar (regra do Roberto, 2026-10-23)
+
+Antes de escrever qualquer slide, monte o **plano narrativo** e apresente ao usuário para validação. Ele diz, em uma frase por slide, o que o espectador deve concluir e por que o slide vem depois do anterior. Não monte o deck antes de ele aprovar. Slides soltos, cada um mostrando um dado, não fazem sentido para quem assiste, mesmo que os dados estejam certos.
+
+- Cada escolha feita (método, funcional, parâmetro) tem um slide que a justifica antes de ser usada.
+- Os slides finais amarram o que foi decidido aos próximos passos: quem usa o quê e por quê.
+- Se o plano do projeto não tiver essa cadeia, diga isso ao usuário antes de montar o deck, para ele ajustar o plano.
+
+
 **Ask ALL questions together** so the user fills everything out at once. If the current environment provides a native structured-question UI, use it; otherwise ask in one concise message with clearly numbered choices:
 
 **Question 1 — Purpose** (header: "Purpose"):
