@@ -26,3 +26,5 @@ Confirmado nesta data: na raiz estão `xyz_to_coord.py`, `setup_hse06_opt_templa
 - Dependências: parsers só `numpy`.
 - Documentos companheiros no repo: `MANUAL.md` (fluxo completo), `README.md` (referência dos scripts), `pipeline_extracao_dft.md` (checklist), `protonation_and_conformer_investigation.md` (registro narrativo do Paper 2), `feature_selection_protocol.md`.
 - Espectros/Raman/jobs coaraci (versionados em `robertoramosjr/turbomole`, pasta `scripts/`): `tm_spectra.py` (IR `vibspectrum` + UV-vis `exspectrum` → `.dat`; `--ir-scale`, `--uv-fwhm`) · `tm_dos.py` (tm2molden + Multiwfn → `dos_tdos.dat`, gap) · `job_raman_egrad_gpu.sh` · `job_gpu_aoforce_test.sh` · `job_dscf_pop_seq.sh` · `run_metal_complex_stages.sh` + `job_metal_complex_trio.sh`. Argparse, agem na pasta atual.
+
+- **Gate de estabilidade (2026-10-23, `scripts/scripts/`):** `setup_stability_test.sh <dir> <tag> singlet|triplet|urpa` · `job_stability_test.sh <dirs…>` (valida `escf : all done`, `actual -r` antes do `ridft`) · `setup_bs_run.sh` + `job_bs_ridft.sh` (UHF BS a partir de `alpha`/`beta`) · `run_metal_complex_stages.sh` exige `.stages/STABILITY_OK`.
