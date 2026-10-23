@@ -46,6 +46,18 @@ Applies to the main text and the supplement (e.g. `paper_2.tex`, `supp_paper_2.t
 4. If the root file is still unversioned (e.g. `paper_2.tex`), step 1 copies it to `old/` under that name and the
    first renamed result is `<stem>_v1...` (or `_v2` if the round is structural), as above.
 
+## References (mandatory: double work, rule set 2026-10-23)
+
+Every new citation touches **two** `.bib` files of the paper root (e.g. `relatório_posdoc/`):
+1. `boxref_<year>.bib`: add the entry (key style `Autor_pagina_ano`, e.g. `Kresse_11169_1996`). Search the file
+   first (`grep -n -i "title.*<palavra>"`): most references already exist, reuse the existing key, never duplicate.
+2. `jshort_<year>.bib`: the journal field of a new entry must be the **`@string` macro** defined there, unquoted
+   (`Journal = PhysRevLett`, `booktitle = NeurIPS`), never the literal journal name. If the journal has no macro,
+   add an `@string{Macro = "Abbrev."}` (ISO abbreviation, same style as the neighbours) to `jshort_<year>.bib` first.
+- Fields not known with certainty (pages, volume, DOI) are **left out**, never invented; list them in the chat.
+- In the text use the keys that exist in `boxref`; do not leave `\todo` for citations that were added.
+- Report in the chat which keys were added or reused.
+
 ## Overview
 
 Use this skill to rewrite a research paper into a reviewer-friendly, high-clarity draft.
