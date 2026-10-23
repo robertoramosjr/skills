@@ -44,6 +44,7 @@ Same rule for every structure, so states are comparable. The user changes the vi
 conda create -y -n render_env -c conda-forge python=3.11 povray ase pillow numpy   # once, no root
 ~/.conda/envs/render_env/bin/python scripts/render_structures.py --states N A B D            # single structures, 86 mm
 ~/.conda/envs/render_env/bin/python scripts/render_structures.py --ensembles --states N A B D # grids, 178 mm
+# second ensemble (e.g. water): inputs <tag>_<state>_water_top1.xyz / _top10_ensemble.xyz, same commands plus --suffix water  (2026-10-23)
 ```
 
 ## Pitfalls

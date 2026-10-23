@@ -550,10 +550,16 @@ def main(argv=None):
     ap.add_argument("--dpi", type=int, default=600)
     ap.add_argument("--outdir", default="Figures/3D")
     ap.add_argument("--root", default=os.path.dirname(here))
+    ap.add_argument("--suffix", default="",
+                    help="read <tag>_<state>_<suffix>_top1.xyz / _top10_ensemble.xyz instead (e.g. water)")
     ap.add_argument("--ensembles", action="store_true",
                     help="render the top-10 conformers of each state and assemble a grid (178 mm)")
     args = ap.parse_args(argv)
 
+    if args.suffix:
+        for d, tail in ((STATES, "_top1.xyz"), (ENSEMBLES, "_top10_ensemble.xyz")):
+            for k, v in d.items():
+                d[k] = v.replace(tail, f"_{args.suffix}{tail}")
     root = os.path.abspath(args.root)
     outdir = args.outdir if os.path.isabs(args.outdir) else os.path.join(root, args.outdir)
     os.makedirs(outdir, exist_ok=True)
