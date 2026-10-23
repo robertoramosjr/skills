@@ -21,6 +21,7 @@ Fluxo reaproveitável de **geometria → cálculo → extração → figura** pa
 6. **Scripts novos:** inglês, `argparse`, modulares, sem hardcode, docstring com `Usage:`, rodáveis a partir da pasta do cálculo; testar antes de entregar. Ficam em `~/work_turbomole/scripts/` (repo git).
 7. **GATE DE ESTABILIDADE DA FUNÇÃO DE ONDA (obrigatório antes de qualquer propriedade).** Metal de transição, camada aberta, singleto de gap pequeno (HOMO-LUMO < ~1 eV) ou qualquer sistema cujas cargas/spin/espectro serão reportados: rodar o teste de instabilidade + broken-symmetry (`references/stages.md` §1c) **numa cópia do `GEO_OPT_CONVERGED`** e gravar `.stages/STABILITY_OK` (E_restrito, E_BS, ΔE, ⟨S²⟩). Sem esse arquivo, `escf`/`aoforce`/NumForce/`dscf -proper`/Bader/cargas **não rodam e nada é reportado** — resultado sem o gate é provisório. Se o BS ficar abaixo do restrito (ΔE < −1e-5 Eh) ou o UHF estiver instável, a solução do estado fundamental mudou: geometria, frequências, população e espectros **são refeitos** a partir dela. Dispersão grande entre Mulliken/Löwdin/NPA/PABOON é sintoma a investigar com este gate, não só diferença de método.
 8. **Nunca comparar energia absoluta entre estados de carga diferente** sem ciclo termodinâmico de referência.
+9. **BENCHMARK DE FUNCIONAL ANTES DO PLANO (molécula nova).** Todo plano de estudo para uma molécula nova começa por um benchmark de funcional (precisão contra experimento/referência alta + custo medido), com veredito **separado** para estado fundamental e estado excitado. Proibido escolher o funcional por "é o que o grupo está acostumado" (HSE06 do Paper 1 incluso) — o nível do Paper 1 só é default quando o objetivo é comparar com o Paper 1. Protocolo, candidatos e armadilhas: `references/functional-benchmark.md`. O resultado (tabela de erros + núcleo-h + escolha) vai para a nota do projeto no cofre e a escolha final é do usuário (regra 3).
 
 ## 1. Intake — perguntar/confirmar antes de montar qualquer coisa
 
@@ -29,7 +30,7 @@ Fluxo reaproveitável de **geometria → cálculo → extração → figura** pa
 | Molécula, carga, multiplicidade | UHF muda `$scfinstab` (`urpa`, não `rpas`) e a ocupação no `define` |
 | Objetivo (quais propriedades: UV, IR, Raman, DOS, Bader, SEN, NTO, pKa…) | define quais estágios entram e o custo |
 | Nº de átomos e rotores flexíveis | decide se precisa de funil de confôrmeros e dá o fator de custo |
-| Nível de teoria | default = **nível do Paper 1** (abaixo); mudar só com aprovação |
+| Nível de teoria | molécula nova → **benchmark de funcional primeiro** (regra 9, `references/functional-benchmark.md`); nível do Paper 1 só se o objetivo for comparar com o Paper 1; mudar só com aprovação |
 | Máquina/versão | `access` (GridUNESP, SLURM, TM 7.8.1 em `~/software/TURBOMOLE`); `coaraci` (nó inteiro, 48 núcleos/nó, TM 8.0.1 instalado e só smoke-testado) |
 | Comparabilidade | se o resultado será comparado ao Paper 1, use exatamente seus parâmetros |
 
@@ -43,6 +44,8 @@ Regras de funcional (detalhes em `references/gotchas.md`): HSE06 → `senex`; PB
 
 ```
 xyz ──► coord (xyz_to_coord.py) ──► define (templates setup_*_template.py)
+   │
+   ├─ molécula nova ─► Benchmark de funcional (references/functional-benchmark.md) ─► usuário escolhe
    │
    ├─ molécula rígida/pequena ─► Estágio 1 direto
    └─ flexível (rotores) ──────► Funil de confôrmeros (references/conformer-funnel.md)
@@ -95,6 +98,7 @@ Antes de seguir ao Estágio 2: `HOMO-LUMO Separation` em `proper.out`; `tail ACF
 
 | Arquivo | Quando abrir |
 |---|---|
+| `references/functional-benchmark.md` | molécula nova ou troca de funcional: protocolo do benchmark (GS × ES, custo, referências) |
 | `references/stages.md` | executar/depurar um estágio (comandos, `set_pop`, DOS, NTO, GW, Raman, broken-symmetry) |
 | `references/conformer-funnel.md` | molécula flexível; população de Boltzmann; rotulagem HSE06; ML delta-learning |
 | `references/thermo-pka.md` | `freeh`, COSMO, ciclo de pKa, calibração por classe, microestados |
