@@ -85,7 +85,7 @@ Antes de seguir ao Estágio 2: `HOMO-LUMO Separation` em `proper.out`; `tail ACF
 
 ## 4. Submissão SLURM (resumo)
 
-`access`: partições `short` (1 d), `medium` (7 d), `long` (30 d), `gpu`; conta única `laser` (não passar `--account`). Paralelismo TM: `PARA_ARCH=SMP` + `PARNODES=$SLURM_NTASKS` (não somar `OMP_NUM_THREADS` por cima — dupla paralelização, o mesmo bug do CREST/OpenBLAS; no CREST use `OMP_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1` e `-T`). `ulimit -s unlimited`. Modelo de script: `job_reference_compound_pipeline.sh` (retomável, valida cada estágio por texto). `coaraci`: nó inteiro por job → pedir 48 núcleos/nó e conferir walltime da partição (`par48-x` 3 d; sem 7 d em CPU).
+`access`: partições `short` (1 d), `medium` (7 d), `long` (30 d), `gpu`; conta única `laser` (não passar `--account`). Paralelismo TM: `PARA_ARCH=SMP` + `PARNODES=$SLURM_NTASKS` (não somar `OMP_NUM_THREADS` por cima — dupla paralelização, o mesmo bug do CREST/OpenBLAS; no CREST use `OMP_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1` e `-T`). `ulimit -s unlimited`. Modelo de script: `job_reference_compound_pipeline.sh` (retomável, valida cada estágio por texto). `coaraci`: nó inteiro por job → SEMPRE `par48-x`, `-N 1 --exclusive --mem=0`, 48 núcleos (nunca 16; erro real no job 1878811) → pedir 48 núcleos/nó e conferir walltime da partição (`par48-x` 3 d; sem 7 d em CPU).
 **Arquivos `job.pbs` antigos são enganosos** (o cluster é SLURM; `qsub`/`qstat` não existem).
 
 ## 5. Ao fechar uma etapa
