@@ -215,12 +215,15 @@ def mode_label(fractions, max_cats=1):
     return label
 
 
-def peak_labels(folder, top_n=5, merge=100.0, max_cats=1):
-    """Labels for the `top_n` most intense IR peaks: [(wavenumber, intensity, text)],
+def peak_labels(folder, top_n=5, merge=100.0, max_cats=1, spec=None):
+    """Labels for the `top_n` most intense peaks: [(wavenumber, intensity, text)],
     ordered by wavenumber. Greedy by intensity; a peak closer than `merge` cm-1 to an
-    already chosen one is skipped so the vertical labels do not collide."""
+    already chosen one is skipped so the vertical labels do not collide. `spec` is a
+    list of (mode, wavenumber, intensity) to rank instead of the IR `vibspectrum`
+    (e.g. Raman cross sections)."""
     fractions = decompose(folder)
-    spec = read_vibspectrum(Path(folder) / "vibspectrum")
+    if spec is None:
+        spec = read_vibspectrum(Path(folder) / "vibspectrum")
     chosen = []
     for mode, wn, inten in sorted(spec, key=lambda t: -t[2]):
         if wn < 20 or mode not in fractions:

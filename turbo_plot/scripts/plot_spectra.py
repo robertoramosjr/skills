@@ -79,10 +79,10 @@ def parse_args(argv=None):
                         help="output stem; writes <stem>_<result>.eps/.png (default: spectra)")
     parser.add_argument("--width", choices=sorted(WIDTH_MM), default="single",
                         help="journal column width (default: single, 89 mm)")
-    parser.add_argument("--only", choices=("uvvis", "ir", "dos"), default=None,
-                        help="plot only this result (default: all three)")
+    parser.add_argument("--only", choices=("uvvis", "ir", "raman", "dos"), default=None,
+                        help="plot only this result (default: all four)")
     parser.add_argument("--ir-labels", default=5, type=int,
-                        help="number of IR peaks labelled with the mode character; 0 disables (default: 5)")
+                        help="number of IR/Raman peaks labelled with the mode character; 0 disables (default: 5)")
     return parser.parse_args(argv)
 
 
@@ -167,7 +167,66 @@ def plot_dos(ax, folder, **_):
     return True
 
 
-PLOTTERS = {"uvvis": plot_uvvis, "ir": plot_ir, "dos": plot_dos}
+BOHR2_TO_A2 = 0.28002852  # 1 bohr^2 in angstrom^2
+RAMAN_FWHM_CM = 20.0  # same Lorentzian width as the IR curve
+RAMAN_MIN_CM = 100.0  # below this the 1/nu prefactor and the notch filters dominate; modes omitted
+
+
+def read_raman(path):
+    """Rows of `raman_spectrum.dat` (control `$raman spectrum`, from intense) with
+    the selection rule YES: (mode, wavenumber, sigma) with the unpolarised 90 degree
+    cross section in A^2/sr. The file lists T,T (incident and scattered field
+    orthogonal to the scattering plane) and II,II (parallel); (par,ort) and (ort,par)
+    equal II,II (intense.out), so unpolarised incident light summed over the scattered
+    polarisations is (TT + 3 II)/2."""
+    rows = []
+    for line in Path(path).read_text().splitlines():
+        parts = line.replace("D", "E").split()
+        if line.startswith(("#", "$")) or len(parts) != 8 or parts[3] != "YES":
+            continue
+        tt, ii = float(parts[6]), float(parts[7])
+        rows.append((int(parts[0]), float(parts[2]), 0.5 * (tt + 3.0 * ii) * BOHR2_TO_A2))
+    return rows
+
+
+def plot_raman(ax, folder, ir_labels=5, **_):
+    """Raman: Lorentzian-broadened differential cross section with sticks and mode labels."""
+    path = folder / "raman_spectrum.dat"
+    if not path.exists():
+        return False
+    rows = [r for r in read_raman(path) if r[1] >= RAMAN_MIN_CM]
+    modes, nu, sigma = (np.array(col) for col in zip(*rows))
+    exponent = int(np.floor(np.log10(sigma.max())))
+    scale = 10.0 ** exponent
+    grid = np.arange(RAMAN_MIN_CM, 4000.0 + 1.0)
+    half = RAMAN_FWHM_CM / 2.0
+    curve = (sigma[None, :] / scale * half**2 / ((grid[:, None] - nu[None, :]) ** 2 + half**2)).sum(axis=1)
+    ax.plot(grid, curve, color=CURVE_COLOR, lw=1.0, label="broadened")
+    ax.vlines(nu, 0, sigma / scale, color=STICK_COLOR, lw=0.8, label="sticks")
+    ax.set_xlabel(r"Wavenumber (cm$^{-1}$)")
+    ax.set_ylabel(rf"Raman cross section (10$^{{{exponent}}}$ Å$^2$ sr$^{{-1}}$)")
+    ax.text(1.0, 1.015, r"514.5 nm, 298.15 K, 90°, unpolarised; modes < 100 cm$^{-1}$ omitted", transform=ax.transAxes,
+            ha="right", va="bottom", fontsize=LABEL_FONTSIZE)
+    ax.set_xlim(RAMAN_MIN_CM - 100.0, 4000.0)
+    headroom(ax, 1.3)
+    if ir_labels > 0:
+        needed = ("coord", "vib_normal_modes")
+        absent = [name for name in needed if not (folder / name).exists()]
+        if absent:
+            print(f"warning: Raman labels skipped, missing {', '.join(absent)} in {folder}", file=sys.stderr)
+        else:
+            ymax = curve.max()
+            ax.set_ylim(0, ymax * 1.45)
+            ranking = list(zip(modes.tolist(), nu.tolist(), sigma.tolist()))
+            for wn, _, text in ir_mode_labels.peak_labels(folder, top_n=ir_labels, spec=ranking):
+                near = np.abs(grid - wn) <= LABEL_WINDOW_CM
+                ax.text(wn, curve[near].max() + 0.02 * ymax, text, rotation=90, ha="center",
+                        va="bottom", fontsize=LABEL_FONTSIZE, color="0.15")
+    ax.legend(loc="upper right")
+    return True
+
+
+PLOTTERS = {"uvvis": plot_uvvis, "ir": plot_ir, "raman": plot_raman, "dos": plot_dos}
 
 
 def save_figure(fig, stem):
