@@ -133,3 +133,4 @@ testes em andamento. Diferem do paper: o texto **reporta o que foi feito e medid
 - O usuário edita no Overleaf; o que ele removeu lá deve ser removido também na cópia local (manter
   as duas coerentes). Alterações são feitas nos arquivos segmentados de `Files/`.
 - **Why:** pedido do usuário em 2026-10-26 ao remover a frase sobre aprendizado ativo do cap. 5.
+- **Backup por segmento:** antes de editar `Files/X.tex`, copiar para `old/Files/X_vN.tex` (N inteiro crescente, sem sobrescrever); o arquivo de trabalho mantém o nome para não quebrar os `\input`.
