@@ -18,6 +18,7 @@ Core points (rejected rewrite, 2026-10-15):
 - **Figure text size**: text inside images must print at the body-text size after compilation (10 pt); a figure scaled down in the layout (e.g. 178 mm grid at `\columnwidth`) fails this. Details in `references/user-style-comp-chem.md` §0.
 - **Preserve the user's paragraphs** (Abstract/Introduction/Methods untouched unless asked); increment, do not
   replace. Keep `\todo/\pending/\open` markers; contradictions with the data become `\todo{}` + a note in the chat.
+- **Relatórios (pós-doc/andamento): reportar fatos e resultados, nunca o motivo das decisões de rumo** (`references/user-style-comp-chem.md` §7).
 - The Output Contract below (outline, paragraph roles, checklists, claim-evidence map) goes **in the chat**, never
   into the manuscript.
 

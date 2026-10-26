@@ -115,3 +115,21 @@ First, ... Second, ... Third, ...", "Two further points are worth recording."
   and look at them.
 - In the chat (not in the paper): list the contradictions found between text,
   figures and data files, and the new `\todo{}` items.
+
+## 7. Relatórios (pós-doc, de andamento) — registrar fatos, não decisões (regra do usuário, 2026-10-26)
+
+Vale para relatórios como `relatório_posdoc/` (capítulos em `Files/capN_001.tex`), que acompanham
+testes em andamento. Diferem do paper: o texto **reporta o que foi feito e medido**, na ordem em que foi feito.
+
+- **Não registrar o motivo de decisões de rumo** (por que algo foi adiado, descartado, priorizado ou
+  deixado para depois). Exemplo removido: "a estratégia de aprendizado ativo ... foi adiada, pois só
+  faz sentido quando o modelo já tem erro baixo". Decisão e justificativa vão para o cofre/plano ou
+  para o chat, nunca para o relatório.
+- Permitido: método, parâmetros, resultados com números, interpretação do dado (hipóteses ligadas à
+  evidência, com ressalva), e o que **ainda não foi feito** como `\pending{}`/`\todo{}`.
+- Ao escrever ou revisar, procurar frases do tipo "foi adiado/descartado/optou-se por ... porque",
+  "como consequência, decidimos", "não faz sentido ainda"; se for decisão sem dado, apagar; se houver
+  dado que a sustenta, manter só o dado.
+- O usuário edita no Overleaf; o que ele removeu lá deve ser removido também na cópia local (manter
+  as duas coerentes). Alterações são feitas nos arquivos segmentados de `Files/`.
+- **Why:** pedido do usuário em 2026-10-26 ao remover a frase sobre aprendizado ativo do cap. 5.
