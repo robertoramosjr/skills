@@ -34,6 +34,8 @@ dscf -proper > pop.out              # Mulliken + SEN (precisa $pop)
 
 ## 2. DOS/PDOS
 
+> **REGRA DURA (usuário, 2026-10-29): PDOS = Multiwfn + Becke, por elemento.** Nunca usar o PDOS Mulliken do TURBOMOLE (`$pop mo ... dos`, receita `dscf -proper` abaixo): tem canais negativos, não é robusto para virtuais e **não deve entrar em figura nem relatório**. A receita `dscf`/`dos` abaixo fica só como diagnóstico de TDOS. Passos: `tm2molden` → molden esférico com virtuais (`turbo_plot/scripts/molden_for_multiwfn.sh <nocc> <molden>`; **UHF:** `turbo_plot/scripts/molden_uhf_for_multiwfn.py --nalpha --nbeta`) → `Multiwfn molden_new.molden < keys` com menu `10` → `7` → `4` (Becke) → `-1` fragmentos por átomos (ex. `67`, `65-66`, `1-2`) → `e`,`0`,`-3`,`2`,faixa,`3`,FWHM,`0`,`3`,`0`,`-10`,`q`. **UHF: antes do `7` inserir `6`,`3` (spin = *Both*; o padrão é só Alpha e dá TDOS pela metade).** Sanidade: soma dos fragmentos / TDOS = 1,000000. s/p/d só por SCPA (sem robustez nos virtuais; dizer a ressalva). Figura: `turbo_plot/scripts/plot_pdos.py` (`--no-opdos`; `--orginfo-au` se o `orginfo.txt` estiver em hartree, HOMO ≈ −0,2). Receita completa e decisões: `turbo_plot/SKILL.md` (seção PDOS).
+
 `<N_MOs>` = nº de funções de base (`grep -n "nbf(AO)" control` ou `grep -A 3 "SCF-basis functions" ridft.out`). Faixas de átomo pela ordem do `$coord` (a 1ª linha `natoms=` não conta como átomo). **Nunca** cole placeholder literal.
 
 ```bash
@@ -48,7 +50,7 @@ set_pop "mulliken loewdin nbo paboon"       # restaura $pop p/ a população
 ```
 Confirme que `dos` existe **antes** do `mv` (senão move um `dos` antigo).
 
-PDOS Mulliken por elemento pode ter canais **negativos** (artefato). Alternativas sem o artefato: Becke (por elemento, espaço real) e SCPA (elemento × s/p), via `tm2molden` → `Molden2AIM` → `Multiwfn_noGUI`. Binários em `~/local_bin/` (nunca dentro da pasta de cálculo). `tm2molden` pede **2** linhas em branco. Sanidade: soma das PDOS Becke = TDOS (<1e-6). **SCPA elemento × l (validado no azobenzeno, 2026-10-16):** script em stdin no Multiwfn sobre `molden_new.molden`: `10`,`7`,`2`(SCPA),`-1`; por fragmento `i`,`cond`,`<Elem>`,`<Enter>`,`<S|P|D|F>`,`q`; depois `e`,`0`,`-3`,`2`,`<emin emax passo a.u.>`,`3`,`0.005`,`0`,`3`. def2-TZVP em C/N/H = 10 fragmentos (C/N × s,p,d,f + H × s,p). Resultado: todos ≥ 0, soma/TDOS = 1±3e-5. Receita completa: `MANUAL.md` §7 do repo `turbomole`. Se o DOS cru tiver "pente", faltou smearing: checar se já existe `*_smeared.dat` antes de re-derivar σ (artepilina C: +0,4 eV).
+PDOS Mulliken por elemento tem canais **negativos** (artefato) e **não é usado** (regra acima). Método a usar: Becke (por elemento, espaço real) e SCPA (elemento × s/p), via `tm2molden` → `Molden2AIM` → `Multiwfn_noGUI`. Binários em `~/local_bin/` (nunca dentro da pasta de cálculo). `tm2molden` pede **2** linhas em branco. Sanidade: soma das PDOS Becke = TDOS (<1e-6). **SCPA elemento × l (validado no azobenzeno, 2026-10-16):** script em stdin no Multiwfn sobre `molden_new.molden`: `10`,`7`,`2`(SCPA),`-1`; por fragmento `i`,`cond`,`<Elem>`,`<Enter>`,`<S|P|D|F>`,`q`; depois `e`,`0`,`-3`,`2`,`<emin emax passo a.u.>`,`3`,`0.005`,`0`,`3`. def2-TZVP em C/N/H = 10 fragmentos (C/N × s,p,d,f + H × s,p). Resultado: todos ≥ 0, soma/TDOS = 1±3e-5. Receita completa: `MANUAL.md` §7 do repo `turbomole`. Se o DOS cru tiver "pente", faltou smearing: checar se já existe `*_smeared.dat` antes de re-derivar σ (artepilina C: +0,4 eV).
 
 ## 3. Opcionais
 

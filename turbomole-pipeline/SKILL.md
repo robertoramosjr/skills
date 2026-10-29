@@ -67,7 +67,7 @@ Use os `setup_*_template.py` (automatizam o `define` via pexpect/PTY): `setup_hs
 1. `jobex -c 800` → exigir `GEO_OPT_CONVERGED`. Cap baixo (`-c 10/40`) só em triagem descartável; reotimização que alimenta G/pesos/espectro é produção. Se atingir o cap (`GEO_OPT_FAILED`): `rm GEO_OPT_FAILED not.converged` e reexecutar — continua da geometria atual; o estado sobrevive a `scancel`/TIMEOUT.
 2. `ridft` (SCF) → `ridft -proper` (cubo p/ Bader) → Bader → **restaurar `control`** → `ridft` apertado.
 3. `escf` (TD-DFT, `rpas`, `$soes a <N>` = **contagem**), `aoforce` (IR; checar imaginárias), `dscf -proper` com `$pop` (Mulliken/SEN).
-4. Opcionais: DOS/PDOS, Becke/SCPA (Multiwfn), GW-BSE, NTO/HOMO-LUMO cubos, Raman.
+4. Opcionais: DOS/PDOS (**Becke no Multiwfn, nunca Mulliken**; SCPA só p/ s/p/d), GW-BSE, NTO/HOMO-LUMO cubos, Raman.
 
 Antes de seguir ao Estágio 2: `HOMO-LUMO Separation` em `proper.out`; `tail ACF.dat` (elétrons integrados ≈ Z total); sem frequência negativa em `vibspectrum`.
 

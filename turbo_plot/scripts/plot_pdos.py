@@ -50,8 +50,9 @@ def read_curve(path):
     return data
 
 
-def homo_lumo(orginfo):
-    """HOMO and LUMO (eV) from Multiwfn orginfo.txt: highest occupied / lowest empty level."""
+def homo_lumo(orginfo, au=False):
+    """HOMO and LUMO (eV) from Multiwfn orginfo.txt: highest occupied / lowest empty level.
+    au=True when the file holds energies in hartree (converted to eV)."""
     levels = []
     for line in Path(orginfo).read_text().splitlines()[1:]:
         parts = line.split()
@@ -59,7 +60,8 @@ def homo_lumo(orginfo):
             levels.append((float(parts[0]), float(parts[1])))
     occ = [e for e, n in levels if n > 0.5]
     emp = [e for e, n in levels if n <= 0.5]
-    return max(occ), min(emp)
+    scale = 27.211386 if au else 1.0
+    return max(occ) * scale, min(emp) * scale
 
 
 def parse_args(argv=None):
@@ -69,6 +71,8 @@ def parse_args(argv=None):
                    help="fragment names in the order defined in Multiwfn")
     p.add_argument("--output", required=True, help="output stem (.eps, .png, .dat)")
     p.add_argument("--orginfo", type=Path, help="orginfo.txt, to mark the HOMO")
+    p.add_argument("--orginfo-au", action="store_true",
+                   help="orginfo.txt energies are in hartree (sanity: HOMO of ~-0.2 means a.u.)")
     p.add_argument("--width", choices=sorted(WIDTH_MM), default="single")
     p.add_argument("--xlim", nargs=2, type=float, default=[-20.0, 2.0], metavar=("EMIN", "EMAX"))
     p.add_argument("--no-opdos", action="store_true",
@@ -104,7 +108,7 @@ def main(argv=None):
     for k, label in enumerate(a.labels):
         ax.plot(energy, frags[:, k], color=PALETTE[k % len(PALETTE)], lw=0.9, label=label)
     if a.orginfo:
-        homo, lumo = homo_lumo(a.orginfo)
+        homo, lumo = homo_lumo(a.orginfo, a.orginfo_au)
         ax.axvline(homo, color="#000000", ls="--", lw=0.6, label=f"HOMO ({homo:.2f} eV)")
         ax.axvline(lumo, color="#000000", ls=":", lw=0.6, label=f"LUMO ({lumo:.2f} eV)")
     ax.set_xlim(*a.xlim)
