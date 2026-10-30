@@ -1,5 +1,7 @@
 # Armadilhas VASP e de dados
 
+- **Núcleos ociosos no job (2026-10-30, access):** os 300 estáticos do rattle (job 4958027) pediam `--ntasks-per-node=4 --cpus-per-task=8` (32 cpus cobradas) mas `mpirun -np $SLURM_NTASKS` lançava só **4 ranks** (OUTCAR: `running 4 mpi-ranks`); o `vasp_std` não usa OpenMP, então 28 de 32 cpus ficaram paradas (4,1 h/frame, 131 núcleo-h cobrados, ~16 úteis). **Regra:** `ntasks × cpus-per-task` = cpus que o VASP realmente usa; conferir `running N mpi-ranks` no OUTCAR e `NumCPUs` no `scontrol`. Nós da access: `S:C:T 2:14:2`, 56 cpus = 28 núcleos físicos, **52 cpus úteis (`CPUEfctv`) = 26 núcleos**; `-n 56` é recusado (`Requested node configuration is not available`). Receita sem ocioso: 1 rank por núcleo físico, `--ntasks-per-node=24 --cpus-per-task=2`, `OMP_NUM_THREADS=1`, `I_MPI_PIN_DOMAIN=core`; INCAR `KPAR × NCORE = ntasks` com KPAR dividindo NKPTS (16 k-pontos: KPAR=8, NCORE=3). Antes de arrays grandes: 1 frame-teste e comparar tempo.
+
 - **Nunca lançar o VASP com `srun`** (2026-10-21): o binário é compilado com Intel/Intel MPI e só roda com `mpirun -np $SLURM_NTASKS vasp_std`. Uma versão antiga de `bash_stress.sh` (remoto, abr/2026) trocava `mpirun` por `srun` com o comentário "compat. Intel MPI" — errado; ao mesclar scripts, a versão com `mpirun` é a certa.
 
 - **Cópia acidental de resultados:** `CaSv_struc2` e `CaBa_struc2` tinham `vasprun.xml` MD5-idêntico a `Bav_struc2`. Rodar `md5sum */vasprun.xml | sort | uniq -w32 -d` antes de montar tabelas.
