@@ -24,3 +24,7 @@
 - Com `ISTART=1`/`ICHARG=1` e CHGCAR vazio o VASP só avisa `CHGCAR is incomplete` e parte de densidade lixo. Use `LABORT=.TRUE.` (para no próximo passo eletrônico e grava WAVECAR) e deixe o `job.sh` escolher `ISTART/ICHARG` por `[ -s WAVECAR ] && [ -s CHGCAR ]`.
 - Sintoma de diagnóstico: `OSZICAR` com E de milhares de eV positivos no DAV:1 e `ls -l` de WAVECAR/CHGCAR = 0.
 - **DeePMD (2026-10-24):** `dp train` que acaba em `NaN detected` (ex.: `se_atten_v2` @149500, lr ~1e-6) não falha o script do job: o Slurm marca COMPLETED mas não há `graph.pb`/`tests/`. Validar sucesso por `tests/*.log`, nunca por `sacct`. Benchmark de descritor (BaZrS3, 150k): embedding satura (~5 %/dobro), fitting net irrelevante, só `rcut` melhora F.
+
+## `COMPLETED` do SLURM não prova VASP ok (2026-10-31, BaZrS3 QbC coaraci)
+- Loop de pastas em um job: se faltar POSCAR/KPOINTS, o VASP aborta ("I REFUSE TO CONTINUE") em segundos e o job sai `COMPLETED` rc 0 (~10 min/job em vez de horas).
+- Antes do `sbatch`: `ls */POSCAR */KPOINTS | wc -l` = nº de pastas. No loop: `rc=$?` logo após o `mpirun` (não dentro de `$(date)`) e marcar OK/FALHA por `grep -q '</modeling>' vasprun.xml`. Ao voltar: contar vasprun >1 KB, não ler só `sacct`.
