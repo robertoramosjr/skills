@@ -23,6 +23,8 @@ Fluxo reaproveitável de **geometria → cálculo → extração → figura** pa
 8. **Nunca comparar energia absoluta entre estados de carga diferente** sem ciclo termodinâmico de referência.
 9. **BENCHMARK DE FUNCIONAL ANTES DO PLANO (molécula nova).** Todo plano de estudo para uma molécula nova começa por um benchmark de funcional (precisão contra experimento/referência alta + custo medido), com veredito **separado** para estado fundamental e estado excitado. Proibido escolher o funcional por "é o que o grupo está acostumado" (HSE06 do Paper 1 incluso) — o nível do Paper 1 só é default quando o objetivo é comparar com o Paper 1. Protocolo, candidatos e armadilhas: `references/functional-benchmark.md`. O resultado (tabela de erros + núcleo-h + escolha) vai para a nota do projeto no cofre e a escolha final é do usuário (regra 3).
 
+10. **TODO `control` — consultar esta skill ANTES de montá-lo/copiá-lo e conferir (grep) antes do `sbatch` (regra do usuário 2026-11-03, GRAVE):** `$scfiterlimit 1500` (passos SCF) e `jobex -c 800` (passos iônicos), SEMPRE — nunca 30/100/default, também em single points, varreduras e cópias de outro cálculo. Ao reaproveitar um `control`, limpar `$grad/$hessian/$vibrational/$optinfo/$hessapprox/$subenergy/$pop` e rodar `actual -r` (gotchas.md l.146).
+
 ## 1. Intake — perguntar/confirmar antes de montar qualquer coisa
 
 | Item | Por quê |
