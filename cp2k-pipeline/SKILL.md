@@ -21,6 +21,8 @@ Pipeline reconstruído e versionado em `~/work_cp2k` (= `git@github.com:robertor
 6. **Conferir a linha `Total number of message passing processes`** == tarefas pedidas (srun puro roda N singletons).
 7. Jobs só em FS compartilhado (`/tmp` é local ao nó); caminhos absolutos; a ferramenta Write pode dar timeout no hook → fallback `cat > f <<'EOF'` e `ls`.
 8. Nunca versionar chave de API (os scripts legados tinham a do Materials Project).
+9. **Limites padrão no `.inp`: `&SCF MAX_SCF 1500` (convergência eletrônica) e `&GEO_OPT`/`&CELL_OPT MAX_ITER 800` (convergência iônica).** Sempre escrever esses valores nos inputs novos e ao retomar/ressubmeter (exceção: testes de grid com `MAX_SCF 1`, §2). Regra do usuário (2026-11-03), após `trans_sh_half` abortar com `MAX_SCF 100`.
+10. **Harpia (desde 2026-11-03): RAM limitada a 900 MB/CPU** (`DefMemPerCPU=900`; QoS par48 = 48 CPUs ⇒ `--mem=43200M`; `--mem` e `--mem-per-cpu` são exclusivos, e `--ntasks-per-node` do script conflita com `-n`). `sacct COMPLETED` não prova nada: o `run_half.sh` só dá `grep` no fim; conferir `SCF run NOT converged`, `oom_kill` no `.err` e `MaxRSS` do step `.0`. A meia-ponte (22×22×39,8 Å, CUTOFF 600) estourou 43 GB em 8 s com 24×2 e com 12×4 (339 rodou com 118 GB).
 
 ## 1. VASP → CP2K (a tradução que importa)
 
