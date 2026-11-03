@@ -147,3 +147,10 @@ Conteúdo: [define](#define-e-input) · [Funcionais/TD-DFT](#funcionais-e-propri
 
 - **Check de imaginária no `job.sh` ignorava o modo 1 (2026-10-24, azobenzeno trans CAM-B3LYP):** `awk '$1>6'` pressupõe 6 modos de translação/rotação nulos primeiro, mas o `vibspectrum` lista a imaginária como modo 1 (os −0,00 vêm depois). O job saiu `ALL_OK` com −32,87 cm⁻¹. Use `awk '$1 ~ /^[0-9]+$/ && $3+0 != 0 {print $3}' vibspectrum | sort -g | head -3` e olhe também o modo 1 a olho. Além disso, `gridsize m4` não é recomendado para híbridos/resposta (manual 8.0 l.3888): para `aoforce` de modo mole, testar grade `4` + `$denconv 1d-10` + `$forceconv 7` antes de concluir que a imaginária é real.
 - 2026-10-29 Upload Zenodo (arquivos de GB) com `urllib` cai com `SSLEOFError` e deixa o rascunho vazio; usar `requests` em streaming com retry/backoff e testar antes com o menor arquivo no login node (`zenodo_upload.py`, job 5309381→5309408).
+
+## ricc2 / define (2026-11-03, Paper 2 v12)
+- `$excitations`: `spectrum states=all operators=diplen` na MESMA linha do `irrep=` é ignorado em silêncio (sem f no output). Usar linha própria e `npre`/`nstart`: `irrep=a  multiplicity=1  nexc=8  npre=9  nstart=11` + ` spectrum  states=all  operators=diplen`. Funciona também com `$reaction_field post-SCF ccs-like` (COSMO-ADC(2)/CC2, refind default 1,3).
+- COSMO pós-SCF: o quadro "SUMMARY OF RELAXED EXCITATIONS" sai vazio; as energias verticais estão nas linhas `Energy:` por estado.
+- `define` do template HSE06 não grava `$jbas`; o ridft lê o RI-J da biblioteca mesmo assim (def2-TZVPD não tem jbas próprio: pôr `jbas = def2-TZVP` por elemento).
+- `setup_hse06_tzvp_template.py --basis` (default def2-TZVP). Custo ADC(2)/CC2 def2-SVP COSMO: 19 átomos/3 raízes ≈ 0,6–0,75 núcleo-h.
+- Shell: `pkill -f <script>` casa a própria linha de comando e mata o shell; `cat > arq` sem stdin trava o comando.
