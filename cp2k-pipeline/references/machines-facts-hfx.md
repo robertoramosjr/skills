@@ -228,3 +228,10 @@ After exhausting every real avenue for hybrid-functional band structures on this
 - Contacts: `&BULK_REGION` with two identical `&CELL` lists + `&SCREENING_REGION`; `&SCATTERING_REGION` = device. Outputs `*-transm-*.transm` (G0 units), `*.dos`.
 - Pitfalls: set `OMP_NUM_THREADS=1` for login tests (default threads oversubscribed: 11 min CPU in 110 s); `module load` inside a pipe is a subshell and does nothing.
 - NEGF run prints no `ENERGY| Total FORCE_EVAL`: `jobs/common.sh is_done` had marked it FAILED; fixed 2026-10-22 (success = `NEGF run converged`).
+
+## Smearing Gaussiano / versões / harpia (verified 2026-11-04, Ag2SeO3 benchmark)
+- `&SMEAR METHOD GAUSSIAN` + `SIGMA [eV]` existe (reproduz VASP ISMEAR=0); o manual NÃO dá a fórmula da ocupação (convenção do SIGMA vs VASP a checar pelas ocupações). Forças consistentes com a energia livre. Gaussiano/FD exigem diagonalização (não OT) nas rotinas do pipeline; `ADDED_MOS` ≈ NBANDS_VASP − N_ocup.
+- `ADDED_MOS AUTO` (manual master) é **rejeitado no parse** do binário 2026.2-intel da harpia; usar inteiro.
+- **2026.2 removeu `MOTION/CELL_OPT/TYPE`** (aborta no parse: "now always DIRECT_CELL_OPT"); `core/cp2k_blocks.build_motion_block` ainda escreve `TYPE DIRECT_CELL_OPT` → quebra na 2026.2, ok na 2026.1/2025.1.
+- Harpia: sem pymatgen/conda no login (`core/cp2k_blocks.py` faz exit); gerar inputs com Python puro. Partição `teste` = máx 8 CPUs (QOS `harpia_te+`; 16 dá QOSMaxCpuPerJobLimit). O nó tem 128 CPUs: com 4 jobs do usuário (120+8) o nó fica cheio e novos jobs ficam `(Resources)`.
+- PBEsol/revPBE nativos: `&PBE` + `PARAMETRIZATION PBESOL|REVPBE`; BLYP = `&BECKE88` + `&LYP` (potencial `GTH-BLYP-qN`).
