@@ -117,6 +117,7 @@ last-segment parsing, unified-DOS layout (NLUMO at `&DOS`), 2026.2 `.pdos` heade
 - RI-HFXk prints `KP-HFX_RI_INFO|` lines (parallel groups, stack size, RI extension radius, unit cells covered, avg sgf in extended RI bases, image cells considered): what parse_basis_probe reads.
 #### Input schema (query `cp2k.psmp --xml` with ElementTree; XML lands in cwd as cp2k_input.xml)
 - `CELL_REF` is a subsection of `&CELL`. CELL_OPT `EXTERNAL_PRESSURE` default 100 bar; `PRESSURE_TOLERANCE` 100 bar.
+- (2026-11-05, Ag2SeO3 kmesh) CELL_OPT whose cell grows past `CELL_REF` (e.g. b 10→18 Å with CELL_REF 1.15x) leaves the grid non-fixed: energies/stress are no longer comparable and the SCF can blow up (E=+1397 Ha, ABORT). Treat such a run as invalid, not as 'k-mesh not converged'. Starting from a POSCAR with unrelaxed ions, LBFGS step 3 collapsed V 380->185 A^3. Energies in `ENERGY|` are Hartree: meV/atom = dE*27211.386/N (a note once mixed mHa and meV, 27x off).
 - `MAX_SCF 1` aborts unless `IGNORE_CONVERGENCE_FAILURE T`. `&SMEAR ON`, `EXTRAPOLATION USE_GUESS` valid.
 - `KPOINT_SET NPOINTS n` -> n+1 points (endpoints inclusive); one set per path segment works; `UNITS B_VECTOR` default.
 - `&DFT%PRINT%DOS` exists (only `&EACH`); `&CURVE` does NOT (new DOS interface unavailable). `KP_RI_MEMORY_ESTIMATE` does NOT exist.
