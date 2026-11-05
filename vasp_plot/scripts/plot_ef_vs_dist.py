@@ -35,7 +35,7 @@ style(); fig, ax = plt.subplots(figsize=(COL_W, 2.7), constrained_layout=True)
 x = np.array([(r[1] + r[2]) / 2 for r in rows]); y = np.array([r[3] for r in rows])
 xe = np.array([[x[i] - rows[i][1] for i in range(len(rows))], [rows[i][2] - x[i] for i in range(len(rows))]])
 ax.errorbar(x, y, xerr=xe, fmt='o-', color='C0', ms=4, lw=1, elinewidth=0.6, capsize=2)
-for xi, yi, r in zip(x, y, rows): ax.annotate(r[0].replace('Ag_', ''), (xi, yi), textcoords='offset points', xytext=(0, 5), ha='center', fontsize=6)
+# no in-plot labels (10 pt rule): identify the points by the order of Table I in the caption
 ax.set_xlabel(r'$d(\mathrm{Nd}\!-\!V_{\mathrm{Ag}})$ ($\mathrm{\AA}$)'); ax.set_ylabel(r'$E_f$ (eV)')
 lo, hi = ax.get_ylim(); ax2 = ax.twinx(); ax2.set_ylim(lo - emin, hi - emin); ax2.set_ylabel(r'$\Delta E$ (eV)'); ax2.tick_params(direction='in')
 save(fig, a.out)
