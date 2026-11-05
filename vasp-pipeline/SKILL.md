@@ -32,7 +32,19 @@ Metodologia usada nos projetos do usuário (BaZrS3, Co3O4, Ag2CrO4, NaCoO2, YSZ/
 4. Constituintes/referências (μ) seguiram o mesmo rito e o **mesmo spin** (`ISPIN`) das células que vão comparar?
 5. Custo reportado antes do `sbatch`; um passo por vez; nada de polling.
 
-**Ainda por documentar com o usuário (não inventar):** como a malha do material primitivo vira a malha das supercélulas (112/222/224 átomos usaram `3×3×2`, `6×5×3`, Γ); critério numérico exato de saturação; tratamento de moléculas em caixa (Γ-only, convergência de vácuo) e de slabs.
+**Regras acrescentadas pelo usuário (2026-11-09):**
+- **Fases de referência (μ, óxidos, constituintes) usam os MESMOS POTCAR do material hospedeiro**, com o mesmo ENCUT derivado do maior ENMAX do hospedeiro. Ex.: para CrO3/Cr2O3 usar o `Cr` (06Sep2000) e o `O_GW` (28Sep2005) do Ag2CrO4; Nd2O3 → `Nd` (25May2002) + `O_GW`; Ag2O → `Ag_GW` + `O_GW`. Conferir por comparação byte a byte dos blocos do POTCAR com o do hospedeiro (feito em 2026-11-09 para Nd2O3/Ag2O/Cr2O3/O2: idênticos).
+- **Não há troca de POTCAR entre stress e Etot** (nem entre Etot e DOS): copiar o mesmo arquivo em todas as etapas.
+- **Malha k das supercélulas:** dividir as subdivisões da malha escolhida na célula original pelo fator de cada eixo da supercélula, **arredondando para cima** os não inteiros; se der 1×1×1 usar **Γ-only**. Ex.: 6×5×3 e supercélula 2×2×2 → 3×3×2.
+- **Critério de escolha de l:** qualquer `l` dentro do platô de saturação serve; no Ag2CrO4 `l=25` ou `l=30` também seriam aceitos. O `l=35` foi escolhido só como garantia de que a energia não oscila. Escolher um `l` do platô com folga, sem ir ao maior.
+- **Sufixo `_OK` na pasta** = sinal do usuário de que **o cálculo daquela pasta terminou**. Não é garantia de convergência: validar por OUTCAR/OSZICAR.
+
+**Moléculas em caixa (O2 etc.) — NUNCA feito antes pelo usuário; protocolo PROPOSTO, a validar com ele (pesquisa de 2026-11-09, ver fontes abaixo):**
+- Não há stress/ISIF=3 (a célula é só uma caixa): a "etapa 1" vira **convergência do tamanho da caixa** (série de lados, ex. 10, 12, 14, 16 Å, caixa **ortorrômbica** com lados diferentes) a ENCUT = 1.125×ENMAX do hospedeiro, mesmo POTCAR; critério em meV/molécula; usuário escolhe.
+- **Γ-only** (`KPOINTS` `GAMMA 1 1 1`): um ponto k basta para átomo/molécula isolados; `ISPIN=2`; O2 é **tripleto**: `NUPDOWN=2` (ou `MAGMOM = 2 2`); `ISMEAR=0` com `SIGMA` pequeno (0.01–0.05), pois os níveis são discretos; `ISYM=0` ajuda estados degenerados; energia a reportar = *energy without entropy*.
+- Depois: Etot com `ISIF=2` (relaxa a ligação) na caixa escolhida.
+- **Ressalva conhecida:** PBE superestima a ligação do O2 (energia de ligação ~6,7 eV vs 5,2 eV experimental, em PW91); se o μ_O vier de O2, decidir com o usuário se aplica correção. Fontes: [VASP tutorial Molecules](https://vasp.at/tutorials/latest/molecules/part1), [fórum: O2/O, NUPDOWN](https://vasp.at/forum/viewtopic.php?p=1458), [fórum: caixa e ISYM](https://vasp.at/forum/viewtopic.php?p=9089), [fórum: SIGMA em O2](https://vasp.at/forum/viewtopic.php?p=1353). A convergência de caixa **não** consta nesses links; é proposta nossa.
+- Slabs: ainda por documentar.
 
 ## 0. Regras duras (do usuário)
 
@@ -50,7 +62,7 @@ Metodologia usada nos projetos do usuário (BaZrS3, Co3O4, Ag2CrO4, NaCoO2, YSZ/
 | Energia total | **1.125 × ENMAX** | 2 (só íons, célula do passo anterior) | `paw_pbe_1.125ENMAX_Etot` | energias comparáveis (defeitos, fases) |
 | DOS / bandas | 1.125 × ENMAX | estático (NSW=0) | `…_DOS`, `…_bands` | propriedades eletrônicas |
 
-Motivo do 2×ENMAX: a base de ondas planas fica fixa na célula inicial; com a célula variando, o stress só converge com cutoff alto. Daí o 2º passo ISIF=2 (reconstrói a base na célula final). Sufixo `_OK` na pasta = validada pelo usuário. Exemplo (BaZrS3): ENCUT 692.728 (stress) e 389.6595 (Etot) ⇒ ENMAX 346.364.
+Motivo do 2×ENMAX: a base de ondas planas fica fixa na célula inicial; com a célula variando, o stress só converge com cutoff alto. Daí o 2º passo ISIF=2 (reconstrói a base na célula final). Sufixo `_OK` na pasta = o usuário sinaliza que o cálculo daquela pasta terminou. Exemplo (BaZrS3): ENCUT 692.728 (stress) e 389.6595 (Etot) ⇒ ENMAX 346.364.
 
 Sempre convergir k-points por densidade, com critério explícito (meV/átomo e %V), antes do ENCUT final dos produtos — ver `references/workflow.md`.
 
