@@ -4,6 +4,14 @@ Conteúdo: [1 Convergência](#1-convergência) · [2 Relaxação/estático](#2-r
 
 Estrutura de pastas observada: `<material>/paw_pbe_2xENMAX_Stress[_OK]/`, `paw_pbe_1.125xENMAX_Etot/`, `..._DOS[_OK]/`, `..._bands/`, `pristine_materials_stress/` (constituintes), `DEFECT_MODELS/`, `doping_studies/`. Fases polimórficas em subpastas (`ZrO2_<fase>_…`).
 
+## 0. O RITO (obrigatório): stress → escolha de k → Etot → DOS
+**Nunca pular o stress nem escolher a malha k à mão.** Ordem fixa, detalhada na tabela do topo do `SKILL.md`:
+1. **Stress + convergência de k-points:** `ENCUT=2×ENMAX`, `ISIF=3`, `KPOINTS` `Auto` com `XX` → `l=05…50` (passo 5), uma pasta por `l`; repetir o ISIF=3 em cada pasta até uma única linha `F=` no `OSZICAR`; `extract_stress_data.py` → `dados_convergencia_final.csv`.
+2. **Escolher a malha** onde a energia saturou, nem a maior nem a menor (propor ao usuário; ele decide); fixar como `GAMMA N1 N2 N3`.
+3. **Etot:** `ENCUT=1.125×ENMAX`, `ISIF=2`, célula = a do stress na malha escolhida.
+4. **DOS/bandas:** estático a partir do Etot (`ISTART=1`, `ICHARG=1`).
+Vale também para constituintes e fases de referência (Ag, Cr, Nd, O, óxidos para μ): `pristine_materials_stress/` → `pure_athoms/` no Ag2CrO4. Spin consistente com as células comparadas (`ISPIN=2` se o dopado é spin-polarizado). Erro de 2026-11-09 (Nd2O3/Ag2O/Cr2O3 sem convergência de k) registrado em `gotchas.md`.
+
 ## 1. Convergência
 - **ENCUT:** 2×ENMAX para o passo de stress (ISIF=3); 1.125×ENMAX para energia total. ENMAX = o maior dentre os POTCAR usados (`grep ENMAX POTCAR`).
 - **k-points:** por densidade (o tipo de malha usado em cada projeto não está documentado: conferir o `KPOINTS` existente); critério explícito (Δ meV/átomo e ΔV %). Pastas numeradas por malha/cutoff (`15/`, `20/`, …) com um INCAR comum.

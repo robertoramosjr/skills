@@ -28,3 +28,6 @@
 ## `COMPLETED` do SLURM não prova VASP ok (2026-10-31, BaZrS3 QbC coaraci)
 - Loop de pastas em um job: se faltar POSCAR/KPOINTS, o VASP aborta ("I REFUSE TO CONTINUE") em segundos e o job sai `COMPLETED` rc 0 (~10 min/job em vez de horas).
 - Antes do `sbatch`: `ls */POSCAR */KPOINTS | wc -l` = nº de pastas. No loop: `rc=$?` logo após o `mpirun` (não dentro de `$(date)`) e marcar OK/FALHA por `grep -q '</modeling>' vasprun.xml`. Ao voltar: contar vasprun >1 KB, não ler só `sacct`.
+
+## O pulo do stress (2026-11-09, Ag2CrO4:Nd) — NUNCA repetir
+Ao montar Nd2O3, Ag2O e Cr2O3 (referências de μ) o assistente escolheu malhas k à mão (9×9×6, 9×9×9, 8×8×8) e partiu de ISIF=3 + ISIF=2 sem a convergência de k-points; dois jobs foram submetidos (1910439, 1911421) e cancelados ainda pendentes. Correto: passo 1 do rito (stress com `Auto` `l=05…50`, ISIF=3, 2×ENMAX, repetição até uma linha `F=`), tabela de convergência, usuário escolhe a malha, só então Etot (ISIF=2, 1.125×ENMAX). Também: Nd/O dos `pure_athoms` ficaram com `ISPIN=1` enquanto as células dopadas são `ISPIN=2` (diferença de 0,75 eV/átomo de Nd no μ).

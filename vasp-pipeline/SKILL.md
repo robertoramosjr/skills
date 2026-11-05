@@ -1,6 +1,6 @@
 ---
 name: vasp-pipeline
-description: Metodologia, templates e armadilhas para cálculos VASP (PAW-PBE) do usuário no cluster SLURM (access/coaraci) — convergência ENCUT/k-points (2×ENMAX p/ stress, 1.125×ENMAX p/ Etot), relaxação ISIF=3/ISIF=2, DOS/bandas/magnetismo, slabs e energia de superfície (Wulff), dopagem/defeitos e energia de formação, datasets "rattle" para ML (DeepMD), DFPT/Born/phonopy, Wannier90. Use SEMPRE que o usuário for iniciar, retomar ou depurar um cálculo VASP (POSCAR, INCAR, KPOINTS, POTCAR, OUTCAR, OSZICAR, vasprun.xml, vasp_std, job.sh), pedir convergência de ENMAX, "stress", "Etot", slabs, vacâncias, BaZrS3/Co3O4/Ag2CrO4/NaCoO2/YSZ/ZrO2/TiNbTa, ou comparar VASP com Turbomole/CP2K — mesmo sem dizer "VASP" explicitamente.
+description: RITO OBRIGATÓRIO (sempre nesta ordem - 1 STRESS com convergência de k-points em ISIF=3 a 2×ENMAX, 2 escolha da malha, 3 ETOT ISIF=2 a 1.125×ENMAX, 4 DOS/propriedades; nunca pular o stress nem escolher malha k por palpite). Metodologia, templates e armadilhas para cálculos VASP (PAW-PBE) do usuário no cluster SLURM (access/coaraci) — convergência ENCUT/k-points (2×ENMAX p/ stress, 1.125×ENMAX p/ Etot), relaxação ISIF=3/ISIF=2, DOS/bandas/magnetismo, slabs e energia de superfície (Wulff), dopagem/defeitos e energia de formação, datasets "rattle" para ML (DeepMD), DFPT/Born/phonopy, Wannier90. Use SEMPRE que o usuário for iniciar, retomar ou depurar um cálculo VASP (POSCAR, INCAR, KPOINTS, POTCAR, OUTCAR, OSZICAR, vasprun.xml, vasp_std, job.sh), pedir convergência de ENMAX, "stress", "Etot", slabs, vacâncias, BaZrS3/Co3O4/Ag2CrO4/NaCoO2/YSZ/ZrO2/TiNbTa, ou comparar VASP com Turbomole/CP2K — mesmo sem dizer "VASP" explicitamente.
 ---
 
 # Pipeline VASP
@@ -8,6 +8,31 @@ description: Metodologia, templates e armadilhas para cálculos VASP (PAW-PBE) d
 Metodologia usada nos projetos do usuário (BaZrS3, Co3O4, Ag2CrO4, NaCoO2, YSZ/ZrO2, Ti15Nb4Ta1, alizarina/Cu-Ni-Zn em molécula). Tudo aqui foi extraído de cálculos reais; onde algo não foi verificado, está dito.
 
 **Por que existe:** VASP é o código "de casa" do usuário e a referência mental de todos os outros (ISIF, NBANDS, ICHARG=11). Erros silenciosos aqui (pasta copiada com `vasprun.xml` idêntico, lotes incompatíveis, job travado 17 h sem OUTCAR) já invalidaram tabelas inteiras de um paper. Por isso: checar dados antes de usar, nunca assumir.
+
+## 🚨 O RITO — OBRIGATÓRIO, SEMPRE NESTA ORDEM (leia antes de criar QUALQUER pasta de cálculo)
+
+> **TODA estrutura nova (material, supercélula-mãe, fase de referência, constituinte elementar, óxido para μ) COMEÇA PELO STRESS. Nunca pela energia total, nunca pelo DOS, nunca com malha k "razoável" escolhida à mão.**
+> Falha registrada em 2026-11-09 (Ag2CrO4:Nd): Nd2O3/Ag2O/Cr2O3 foram montados com malhas k por palpite e ISIF=2 direto (jobs 1910439/1911421, cancelados antes de rodar). O usuário corrigiu: *"primeiro stress, depois etot, depois dos"*.
+
+| # | Etapa | ENCUT | ISIF | Malha k | Pasta | Saída que fecha a etapa |
+|---|---|---|---|---|---|---|
+| **1** | **STRESS + convergência de k-points** | **2 × ENMAX** (maior ENMAX dos POTCAR) | **3** (célula + íons) | `KPOINTS` modo **Auto**, comprimento `l = 05…50` (passo 5), uma pasta por `l` | `paw_pbe_2xENMAX_Stress[_OK]` | `dados_convergencia_final.csv` (Kdensity, Kmesh, Lattice_Param, Energy, Pasta) |
+| **2** | **Escolha da malha** (decisão do usuário: propor, não decidir) | — | — | a malha onde a energia **já saturou**, **nem a maior** (custo) **nem a menor** (garantir que estamos num ponto otimizado) | — | malha explícita Γ-centrada (`GAMMA` + `N1 N2 N3`) registrada no plano |
+| **3** | **ETOT** | **1.125 × ENMAX** (mesmo ENMAX) | **2** (só íons; célula do stress) | a malha escolhida no passo 2 | `paw_pbe_1.125xENMAX_Etot` | `OUTCAR` com `reached required accuracy`; energias comparáveis |
+| **4** | **DOS / bandas / propriedades** | 1.125 × ENMAX | estático (`NSW=0`), `ISTART=1`/`ICHARG=1` do Etot | a do Etot (ou mais densa, `KPOINTS_OPT`) | `paw_pbe_1.125xENMAX_DOS`, `_bands` | `DOS_raw_data.csv` etc. |
+
+**Como o stress foi feito no Ag2CrO4 (modelo a copiar):** `INCAR` com `ENCUT=829.270` (=2×414.635, o **ENMAX do O_GW**, maior entre Ag_GW 249.844, Cr 227.080, O_GW 414.635), `ISIF=3`, `NSW=800`, `IBRION=2`; `KPOINTS` com `Auto` e o comprimento escrito como `XX`; o script cria `05/ 10/ … 50/`, copia `INCAR POSCAR KPOINTS POTCAR`, troca `XX`→`l` com `sed`, e dentro de cada pasta **repete o ISIF=3 (`CONTCAR`→`POSCAR`, `OSZICAR_n`, `OUTCAR_n`) até o `OSZICAR` ter uma única linha `F=`** (máx. 50 repetições): é isso que reconstrói a base de ondas planas na célula final. Scripts: `bash_stress_coaraci.sh` (coaraci, com resubmissão por tempo) e `bash_stress.sh` (access), em `~/work_vasp/scripts/`; tabela por `extract_stress_data.py`. Exemplo real (28 átomos, Ag2CrO4): `l=15` está −0,37 meV/átomo de `l=35`; de `l=20` a `l=50` tudo fica dentro de 0,01 meV/átomo (saturado) → escolhido **`l=35` (6×5×3)**, que entrou no `KPOINTS` do Etot e do DOS.
+
+**Cronologia no Ag2CrO4 (referência):** stress da célula de 28 átomos (`paw_pbe_2xENMAX_Stress_OK`, `l=05…50`) → escolha 6×5×3 → Etot do mesmo material (`paw_pbe_1.125xENMAX_Etot`, `ISIF=2`, `ENCUT=466.464375`) → constituintes e fases de referência pelo mesmo rito (`pristine_materials_stress/` → `pure_athoms/`) → supercélulas pristina e dopadas (112 e 222–224 átomos) sobre a célula do Etot, `ISIF=2` → DOS estático (`paw_pbe_1.125xENMAX_DOS`, `NSW=0`, `ISTART=ICHARG=1`).
+
+**Checklist antes de qualquer `sbatch` numa estrutura nova (se algum "não", pare):**
+1. Existe pasta de stress convergida em k para esta estrutura (tabela `dados_convergencia_final.csv`)? Se não, **o primeiro job é o stress**.
+2. A malha do Etot veio da tabela e foi aprovada pelo usuário (passo 2), não de palpite?
+3. ENCUT = 2×ENMAX no stress e 1.125×ENMAX no Etot, com o **mesmo** ENMAX (maior dos POTCAR da própria estrutura)?
+4. Constituintes/referências (μ) seguiram o mesmo rito e o **mesmo spin** (`ISPIN`) das células que vão comparar?
+5. Custo reportado antes do `sbatch`; um passo por vez; nada de polling.
+
+**Ainda por documentar com o usuário (não inventar):** como a malha do material primitivo vira a malha das supercélulas (112/222/224 átomos usaram `3×3×2`, `6×5×3`, Γ); critério numérico exato de saturação; tratamento de moléculas em caixa (Γ-only, convergência de vácuo) e de slabs.
 
 ## 0. Regras duras (do usuário)
 
@@ -17,7 +42,7 @@ Metodologia usada nos projetos do usuário (BaZrS3, Co3O4, Ag2CrO4, NaCoO2, YSZ/
 4. **Nunca confiar em número de apresentação/póster antigo** sem rastrear ao `vasprun.xml`/CSV de origem; já houve RMSE, EoS e curvas "fabricados" e `vasprun.xml` MD5-idêntico entre pastas diferentes (`md5sum` antes de agrupar réplicas).
 5. Scripts: inglês, `argparse`, docstring com `Usage:`, sem hardcode; ficam em `~/work_vasp/scripts/` (repo `computational-materials-scripts`). Jobs só em FS compartilhado, nunca `/tmp`.
 
-## 1. Convenção de convergência (a "marca" do grupo)
+## 1. Convenção de convergência (detalhe da tabela do RITO acima)
 
 | Etapa | ENCUT | ISIF | Pasta típica | Para quê |
 |---|---|---|---|---|
