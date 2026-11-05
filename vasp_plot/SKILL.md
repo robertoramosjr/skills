@@ -32,4 +32,6 @@ Estágio de figura: transforma dados já extraídos em figura. Não roda cálcul
 
 ## Figuras conhecidas
 - `paper/Figures/DOS.eps` (PDOS a/b sem e com vacâncias) e `magnetic_moment_comparison.eps` (momentos a/b): já existem; referência = as próprias.
-- Pendentes, **aguardando referência do usuário**: E_f/ΔE vs d(Nd–V); decaimento do momento vs distância; isosuperfície de densidade de spin; diagrama de estabilidade de μ.
+- **a (definida 2026-11-05):** pontos ligados por linha; x = distância Nd–V, y = energia de formação e ΔE (`Ef_calc/formation_energy_Ag_and_vacancies.csv` + distâncias medidas das CONTCAR).
+- **b (definida 2026-11-05):** pontos ligados por linha; x = distância ao Nd, y = momento magnético (`decay_{Ag,Cr,O}_vs_Nd_raw_data.csv`).
+- Pendentes, **o usuário fornece a referência**: c = isosuperfície de densidade de spin; d = diagrama de estabilidade de μ.
