@@ -109,10 +109,23 @@ First, ... Second, ... Third, ...", "Two further points are worth recording."
 
 ## 6. Checks before delivering
 
-- Compile (`latex`+`bibtex`, user TeX Live; see the project CLAUDE.md), zero
-  errors; list undefined citations.
-- Render the pages with new figures/tables (`dvips`→`ps2pdf`→`pdftoppm -r 60`)
-  and look at them.
+- Compile with zero errors and list undefined citations/references. On machines
+  without TeX Live (e.g. coaraci) use the conda env **`writing_env`** (tectonic +
+  ghostscript + poppler; set up 2026-11-05):
+  `~/skills/research-paper-writing/scripts/texbuild.sh paper.tex supp.tex --png`
+  (also on PATH as `texbuild` inside the env). It copies the paper folder to
+  `<paper>/_build/` (without `old/`), converts every `.eps` to `.pdf` (tectonic
+  does not read EPS), compiles there (bibtex included), reports undefined
+  refs/cites and overfull boxes, and with `--png` renders the pages to
+  `_build/pages_<stem>/`. The source `.tex` is never modified. Recreate the env:
+  `conda create -y -n writing_env -c conda-forge tectonic ghostscript poppler python=3.12`
+  (first compile downloads TeX Live packages to `~/.cache/Tectonic`; needs internet).
+  Where TeX Live exists, `latex`+`bibtex`+`dvips`→`ps2pdf` is still fine.
+- Render the pages with new figures/tables (`texbuild --png`, or
+  `pdftoppm -r 60`) and look at them.
+- Pitfall (2026-11-05): with siunitx v3, `\SI{5}{\mu_B}` stops the compilation
+  ("Missing $ inserted"). Declare `\DeclareSIUnit{\muB}{\ensuremath{\mu_{\mathrm{B}}}}`
+  and write `\SI{5}{\muB}`; `$\mu_B$` in math mode is fine.
 - In the chat (not in the paper): list the contradictions found between text,
   figures and data files, and the new `\todo{}` items.
 
