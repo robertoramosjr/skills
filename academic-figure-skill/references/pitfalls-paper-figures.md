@@ -56,3 +56,7 @@ Lessons from real figure work (Paper 2 re-plot, 2026-10-15). Each entry: the tra
 ## 14. Dado experimental de figura de paper em PDF (2026-10-15)
 **Trap:** digitalizar à mão uma figura ruim de um PDF (curva imprecisa, pH/λ lidos a olho) quando ela costuma ser vetorial.
 **Rule:** primeiro `pdfimages -list`: se a figura não é raster, `pdftocairo -svg -f P -l P x.pdf out.svg` e ler os `<path>` (matriz `transform` aplicada) — marcas de escala dos eixos dão a calibração, marcadores são triângulos/círculos preenchidos, cada curva é um path longo. Precisão ~0,1 unidade. Salvar em `Figures/data/` com DOI e método no cabeçalho; conferir contra números citados no texto do paper. Marcadores quantizados (ex.: λmax a ~1 nm) dizer na legenda. Curva sem rótulo de pH: atribuir por ordem de desenho + λmax e marcar a suposição.
+
+## 15. `\columnwidth` em achemso `manuscript=article` (2026-11-06)
+**Trap:** no modo manuscrito do achemso (coluna única, 12 pt) `\columnwidth` = largura do texto (~16,5 cm). Uma figura desenhada a 86 mm e incluída com `width=\columnwidth` é ampliada ~1,9× e estoura a página (legenda some sob o número da página).
+**Rule:** em achemso manuscrito, incluir figuras de uma coluna na largura de projeto (`width=8.6cm`, coluna ACS 3,25 in) e as de duas colunas com `width=\textwidth` só se desenhadas a ~17 cm. Renderizar a página (`pdftoppm -r 50`) e conferir.

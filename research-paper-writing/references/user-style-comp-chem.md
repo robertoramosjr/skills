@@ -123,6 +123,9 @@ First, ... Second, ... Third, ...", "Two further points are worth recording."
   Where TeX Live exists, `latex`+`bibtex`+`dvips`→`ps2pdf` is still fine.
 - Render the pages with new figures/tables (`texbuild --png`, or
   `pdftoppm -r 60`) and look at them.
+- Pitfall (2026-11-06): `achemso` with `journal=jpcafh` (and other ACS configs) runs `\SectionNumbersOff`, so every
+  `Sec.~\ref{}` prints as an empty "Sec." with no LaTeX warning. Either add `\SectionNumbersOn` to the preamble or refer to
+  sections by name; check with `pdftotext paper.pdf - | grep -o "Sec\. [^ ]*" | sort | uniq -c`.
 - Pitfall (2026-11-05): with siunitx v3, `\SI{5}{\mu_B}` stops the compilation
   ("Missing $ inserted"). Declare `\DeclareSIUnit{\muB}{\ensuremath{\mu_{\mathrm{B}}}}`
   and write `\SI{5}{\muB}`; `$\mu_B$` in math mode is fine.
