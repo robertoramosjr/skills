@@ -165,3 +165,8 @@ Conteúdo: [define](#define-e-input) · [Funcionais/TD-DFT](#funcionais-e-propri
 ## harpia: QoS par16 e python -I (2026-11-05)
 - `par16` na harpia tem QoS `harpia_16` com `GrpTRES cpu=16` no total: só 1 job de 16 CPUs roda por vez; `--array=…%2` não paraleliza (o 2º fica `QOSGrpCpuLimit`). Para paralelizar, usar outra partição (par48a/b) enquanto houver CPU ociosa no nó (128 CPU).
 - `python3 -I script.py` NÃO põe o diretório do script no `sys.path`: `from tmhess import …` falha. Em scripts nossos que importam módulo vizinho, usar `cd <pasta>; python3 script.py` (o `-I` é só para ler dados não confiáveis).
+
+## ω customizado no CAM-B3LYP e $senex no aoforce (2026-11-06, harpia TM 8.0.1)
+- **Editar `$xctype ... w=` não muda ω:** o TM regenera a linha a partir de `functional cam-b3lyp` e roda com 0,33 em silêncio (job 549: 3 casos "ω" idênticos até 1e-8 Eh). Forma certa: `functional cam-b3lyp_own <alpha> <beta> <mu>` (XCFun; CAM padrão = `0.19 0.46 0.33`; TURBOTEST `libxc/short/H2O.CAMB3LYPown.RIDFT`) e apagar `$xctype`. Conferir `omega=`/`Using mu` no scf.out.
+- **D3(BJ) não conhece `cam-b3lyp_own`** ("functional name unknown in DFT-D3 BJ"): usar `$disp3 -bj -func cam-b3lyp` (E_D3 idêntica à do CAM padrão). Para outros `_own`/libxc: `-func <nome TM>` ou `--param s6 s8 a1 a2` (último na linha).
+- **`$senex` no `aoforce` com CAM-B3LYP deu imaginária espúria** (azobenzeno trans: aoforce −23 cm⁻¹ vs curvatura FD +90; sem `$senex`: aoforce +10,6 = FD +11,2). Para frequências RSH, validar com/sem senex ou NumForce. **`dscf` ignora `$senex`, mas o `aoforce` usa**: tirar RI-J sem tirar `$senex` gera Hessiana sem sentido (milhares de cm⁻¹ imaginários).
