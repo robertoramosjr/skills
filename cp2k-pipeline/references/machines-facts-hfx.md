@@ -97,6 +97,10 @@ last-segment parsing, unified-DOS layout (NLUMO at `&DOS`), 2026.2 `.pdos` heade
 
 ---------------------------------------------------------------------------------------------------
 ## 5. Verified CP2K facts
+### 5a-bis. CELL_REF fixo vs. célula que cresce (2026-11-06, Ag2SeO3 revPBE, 2026.2 psmp)
+- `&CELL_REF` = grade de referência (1.15× célula inicial). Se a célula relaxada ultrapassa isso, o CELL_OPT termina `OPTIMIZATION COMPLETED` mas a energia fica inconsistente com a grade real: SP (ENERGY, grade nova) na geometria final → ΔE +2,12 meV/át. (revPBE, b 14,35 > 11,56) vs +0,50/+0,63/−0,13/+1,10 nos que cresceram pouco. No restart `&CELL_REF` fica aninhado em `&CELL`.
+- Remédio: novo input com cell+coords do último `.restart` (COORD é `SCALED T`) e CELL_REF = 1.15× da célula nova; critério ≲1 meV/át. no SP.
+
 ### 5a. cp2k/2026.1 on access (2026-09-24)
 - Default aborts on unconverged SCF (`IGNORE_CONVERGENCE_FAILURE` F). `&OT` + any `&KPOINTS` aborts. `EXTERNAL_PRESSURE` default 100 bar.
 - DOS: `&DFT%PRINT%PDOS` (COMPONENTS, NLUMO, APPEND) exists; `&DFT%PRINT%DOS` = total DOS only (DELTA_E); `&DOS%PDOS` rejected by --check.
