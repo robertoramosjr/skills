@@ -40,7 +40,7 @@ mkdir -p ~/.gemini/antigravity-cli/skills
 for d in ~/skills/*/; do [ -f "$d/SKILL.md" ] && ln -sfn "${d%/}" ~/.gemini/antigravity-cli/skills/$(basename "$d"); done
 ln -sfn ~/skills/global/CLAUDE.md ~/.gemini/GEMINI.md     # regras globais = mesma fonte do Claude
 ```
-Login é interativo (`agy`, abrir a URL, colar o código). Dentro do `agy`, `/skills` confirma o que foi carregado. Fontes divergem sobre o caminho global (alternativas: `~/.gemini/config/skills/`, `~/.gemini/antigravity/skills/`); o que vale é o que `/skills` listar.
+Login é interativo (`agy`, abrir a URL, colar o código). Caminho global das skills verificado em 2026-11-07: `/skills` no `agy` lista as 9 a partir de `~/.gemini/antigravity-cli/skills/`.
 
 Atualizar: `git -C ~/skills pull`. Regra de sessão (também no `~/.claude/CLAUDE.md`): `git pull` neste repo no início e commit+push no fim, como no cofre.
 
