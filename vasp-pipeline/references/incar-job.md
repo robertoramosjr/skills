@@ -37,6 +37,35 @@ cd $SLURM_SUBMIT_DIR
 rm -f STOPCAR
 mpirun -np $SLURM_NTASKS vasp_std > saida.out
 ```
+## job.sh (coaraci) — bloco de ambiente obrigatório
+```bash
+#!/bin/bash
+#SBATCH --partition=par48-x            # ~200+ átomos: par480-x, -N 2..10, -t 2-00:00:00
+#SBATCH -N 1
+#SBATCH --exclusive
+#SBATCH --mem=0
+#SBATCH --ntasks-per-node=48
+#SBATCH --cpus-per-task=1
+#SBATCH -t 3-00:00:00
+#SBATCH -o job.o --open-mode=append -e job.e -J <nome>
+export I_MPI_HYDRA_BOOTSTRAP=slurm   # comunicação entre nós pelo slurm
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK   # = 1 (vasp_std: 1 rank por núcleo)
+export MKL_NUM_THREADS=1             # evita oversubscription
+export OMP_PLACES=cores OMP_PROC_BIND=close
+export I_MPI_PIN=1                   # = off se houver vários mpirun simultâneos no nó
+export I_MPI_PIN_DOMAIN=core
+export I_MPI_COLL_EXTERNAL=0         # desliga HCOLL (SIGSEGV em hcoll_init no MPI_Init)
+export UCX_TLS=^xpmem                # XPMEM do UCX: "Cannot allocate memory" após muitas horas
+export OMP_STACKSIZE=512m            # stack OpenMP estoura no setup dos projetores PAW
+ulimit -s unlimited
+module purge
+module load vasp/6.6-intel-2023.1.0-fftw-mkl-hdf5-wannier
+cd $SLURM_SUBMIT_DIR
+rm -f STOPCAR
+mpirun -np $SLURM_NTASKS vasp_std > vasp_run.out
+```
+Depois do `sbatch`: `scontrol show job <id>` (NumCPUs = 48 × nós) e, quando rodar, `running N mpi-ranks` no OUTCAR igual a `ntasks`. Ressubmissão por tempo: `~/work_vasp/scripts/bash_etot_coaraci.sh`.
+
 Arrays de pastas: `--array=1-N%M` e `sed -n "${SLURM_ARRAY_TASK_ID}p"` numa lista em FS compartilhado.
 
 ## Radar de fila (`check_queue.py`)
