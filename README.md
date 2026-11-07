@@ -33,6 +33,15 @@ Hooks do cofre (captura automática ao fim/compactação da sessão; ver `~/cofr
   "PreCompact": [{"hooks": [{"type": "command", "command": "python3 ~/cofre/tools/cofre.py capture --hook", "timeout": 30}]}]
 }
 ```
+### Antigravity CLI (`agy`) — mesmas skills e mesmas regras globais (2026-11-07)
+```bash
+curl -fsSL -o /tmp/agy-install.sh https://antigravity.google/cli/install.sh && less /tmp/agy-install.sh && bash /tmp/agy-install.sh   # instala em ~/.local/bin/agy
+mkdir -p ~/.gemini/antigravity-cli/skills
+for d in ~/skills/*/; do [ -f "$d/SKILL.md" ] && ln -sfn "${d%/}" ~/.gemini/antigravity-cli/skills/$(basename "$d"); done
+ln -sfn ~/skills/global/CLAUDE.md ~/.gemini/GEMINI.md     # regras globais = mesma fonte do Claude
+```
+Login é interativo (`agy`, abrir a URL, colar o código). Dentro do `agy`, `/skills` confirma o que foi carregado. Fontes divergem sobre o caminho global (alternativas: `~/.gemini/config/skills/`, `~/.gemini/antigravity/skills/`); o que vale é o que `/skills` listar.
+
 Atualizar: `git -C ~/skills pull`. Regra de sessão (também no `~/.claude/CLAUDE.md`): `git pull` neste repo no início e commit+push no fim, como no cofre.
 
 ## Convenções
