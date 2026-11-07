@@ -14,7 +14,8 @@ old DOS_raw_data.csv); the raw DOSCAR (ISMEAR=0, SIGMA=0.01) is too spiky to rea
 Total-DOS scale check: the integrated TDOS at E_F must equal NELECT (OUTCAR). Six 222-atom DOSCARs of Ag2CrO4
 (VASP 6.6.0 build Apr 08 2026) have the TDOS block divided by exactly 800 (vasprun.xml is right, PDOS is right);
 the script rescales by NELECT/integral when they differ by >2 % and prints a warning.
-Works for LORBIT=10 or 11 (up = even columns, down = odd columns of each atom block) and ISPIN=2.
+Works for LORBIT=10 or 11 (up = even columns, down = odd columns of each atom block); an ISPIN=1 DOSCAR
+(non-magnetic reference, e.g. the pristine host) is drawn with half of each density in each channel.
 
 Usage:
   plot_dos_per_atom.py --panel DIR:LABEL[:flip] [--panel ...] --out PREFIX [--xlim -4 4] [--ylim -11 11]
@@ -55,13 +56,18 @@ def read_doscar(folder):
         hdr = f.readline().split()
         nedos, efermi = int(hdr[2]), float(hdr[3])
         tot = np.array([f.readline().split() for _ in range(nedos)], dtype=float)
-        if tot.shape[1] != 5:
-            raise ValueError('DOSCAR is not spin-polarized (ISPIN=2 expected)')
+        spin = tot.shape[1] == 5
+        if not spin:  # ISPIN=1 (non-magnetic reference): half of each density in each channel
+            tot = np.column_stack([tot[:, 0], tot[:, 1] / 2, tot[:, 1] / 2, tot[:, 2] / 2, tot[:, 2] / 2])
         atoms = []
         for _ in range(natoms):
             f.readline()
             blk = np.array([f.readline().split() for _ in range(nedos)], dtype=float)
-            atoms.append((blk[:, 1::2].sum(axis=1), blk[:, 2::2].sum(axis=1)))
+            if spin:
+                atoms.append((blk[:, 1::2].sum(axis=1), blk[:, 2::2].sum(axis=1)))
+            else:
+                h = blk[:, 1:].sum(axis=1) / 2
+                atoms.append((h, h))
     return natoms, efermi, tot, atoms
 
 
