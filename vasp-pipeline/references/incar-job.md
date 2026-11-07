@@ -19,7 +19,7 @@ NCORE  = 4 ; LPLANE = .TRUE.
 ```
 Se a convergência eletrônica falhar: reduzir `TIME`, ajustar `AMIX/BMIX`, `ALGO=All`/`Fast` com cuidado, `LMAXMIX=4/6` (d/f). Sloshing (`DAV: 99/100` repetido) aparece no `OSZICAR`.
 
-## job.sh (access)
+## job.sh (access) — bloco de ambiente obrigatório (núcleo comum + linhas OFI do access)
 ```bash
 #!/bin/bash
 #SBATCH -t 24:00:00
@@ -29,15 +29,16 @@ ulimit -s unlimited ; ulimit -l unlimited
 module purge
 module load miniconda/24.4.0-libmamba intel/mpi/2017 vasp/6.4.3
 export I_MPI_HYDRA_BOOTSTRAP=slurm OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK MKL_NUM_THREADS=1
-export OMP_PLACES=cores OMP_PROC_BIND=close I_MPI_PIN=1 I_MPI_PIN_DOMAIN=omp
-export I_MPI_FABRICS=shm:ofi I_MPI_FALLBACK=0
+export OMP_PLACES=cores OMP_PROC_BIND=close I_MPI_PIN=1 I_MPI_PIN_DOMAIN=core
+export OMP_STACKSIZE=512m            # stack OpenMP estoura no setup dos projetores PAW
+export I_MPI_FABRICS=shm:ofi I_MPI_FALLBACK=0   # específico do access (OFI)
 # se o fabric do access estiver instável (ver SKILL.md §3):
 # export OMPI_MCA_pml=ob1 OMPI_MCA_btl=self,sm,tcp OMPI_MCA_btl_ofi_disable=1
 cd $SLURM_SUBMIT_DIR
 rm -f STOPCAR
 mpirun -np $SLURM_NTASKS vasp_std > saida.out
 ```
-## job.sh (coaraci) — bloco de ambiente obrigatório
+## job.sh (coaraci) — bloco de ambiente obrigatório (núcleo comum + linhas UCX/HCOLL da coaraci)
 ```bash
 #!/bin/bash
 #SBATCH --partition=par48-x            # ~200+ átomos: par480-x, -N 2..10, -t 2-00:00:00
