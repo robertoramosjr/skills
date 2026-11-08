@@ -113,6 +113,15 @@ def load_panel(folder, flip, sigma=0.0):
     return e, (up, dn), pd, bool(flip)
 
 
+def legend_entries(axes):
+    """Unique legend entries over all panels (a pristine panel has no Nd line), in first-seen order."""
+    seen = {}
+    for ax in axes:
+        for h, lab in zip(*ax.get_legend_handles_labels()):
+            seen.setdefault(lab, h)
+    return list(seen.values()), list(seen.keys())
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--panel', action='append', required=True, help='DIR:LABEL[:flip|:auto]')
@@ -179,11 +188,13 @@ def main(argv=None):
         fig.supylabel('DOS (states/eV/atom)', fontsize=10)
     axs[-1, 0].set_xlabel(r'$E - E_\mathrm{F}$ (eV)')
     if a.legend_loc == 'top':
-        h, lab = axs[0, 0].get_legend_handles_labels()
+        h, lab = legend_entries(axs[:, 0])
         fig.legend(h, lab, loc='outside upper center', ncol=len(lab), frameon=False, handlelength=1.2,
                    columnspacing=0.8)
     else:
-        axs[0, 0].legend(loc=a.legend_loc, ncol=a.legend_ncol, frameon=False, handlelength=1.4, columnspacing=1.0)
+        h, lab = legend_entries(axs[:, 0])
+        axs[0, 0].legend(h, lab, loc=a.legend_loc, ncol=a.legend_ncol, frameon=False, handlelength=1.4,
+                         columnspacing=1.0)
     save(fig, a.out)
 
 
