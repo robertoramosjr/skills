@@ -46,14 +46,14 @@ CONFIGS = [
 ]
 # colours sampled from the reference render (sphere body); ghost/polyhedra sky blue (user, 2026-11-09)
 COL = {"Ag": "#C0C4C5", "Cr": "#2020A0", "O": "#F8211F", "Nd": "#F99A1F",
-       "ghost": "#8FD3F4", "poly": "#6EC1EA", "edge": "#2E9FD6"}
+       "ghost": "#8FD3F4", "poly": "#F3E3B0", "edge": "#C8A24A"}   # cream polyhedra (user, 2026-11-09)
 RAD = {"Ag": 0.56, "Cr": 0.50, "O": 0.30, "Nd": 0.73, "ghost": 0.42}   # A, measured on the reference (c = 20.46 A -> ~34 px/A)
 BOND_R = 0.07
 FRONT_SHIFT = 80.0   # A, see build_scene.F
-FACE_T = 0.60        # transparency of the polyhedron faces
+FACE_T = 0.50        # transparency of the polyhedron faces
 BOND_MAX = {("Ag", "O"): 2.75, ("Cr", "O"): 2.0, ("Nd", "O"): 2.8}
 IMG_TOL = 0.02   # fractional margin: atoms this close to a cell face are repeated on the opposite face
-FIN = "finish { ambient 0.25 diffuse 0.75 specular 0.3 roughness 0.01 phong 0.9 phong_size 90 }"
+FIN = ("finish { ambient 0.22 diffuse 0.78 specular 1.0 roughness 0.004 phong 1.0 phong_size 250 }")   # shiny (user, 2026-11-09)
 TILT_V, TILT_U = 28.0, 14.0   # deg: view rotation about the vertical / horizontal screen axes
 
 
@@ -197,12 +197,13 @@ def build_scene(d, centre, half_u, half_v):
     pc = tuple(int(COL["poly"].lstrip("#")[k:k + 2], 16) / 255 for k in (0, 2, 4))
     cam = 1000.0
 
-    def F(p):
+    def F(p, extra=0.0):
         """Screen position moved FRONT_SHIFT A towards the camera with the lateral part rescaled so the
         projection is unchanged: polyhedra/ghosts are drawn on top of the atoms in front of them."""
         q = S(p)
-        k = (cam + q[2] - FRONT_SHIFT) / (cam + q[2])
-        return np.array([q[0] * k, q[1] * k, q[2] - FRONT_SHIFT]), k
+        sh = FRONT_SHIFT + extra
+        k = (cam + q[2] - sh) / (cam + q[2])
+        return np.array([q[0] * k, q[1] * k, q[2] - sh]), k
 
     for c, verts in ghost_items:
         pts = np.array(verts)
@@ -215,7 +216,7 @@ def build_scene(d, centre, half_u, half_v):
             q = [fp[k][0] for k in f]
             s += (f"triangle {{ {V(q[0])}, {V(q[1])}, {V(q[2])} pigment {{ rgbt <{pc[0]:.3f},{pc[1]:.3f},{pc[2]:.3f},{FACE_T}> }} "
                   f"finish {{ ambient 0.8 diffuse 0.2 }} }}\n")
-        g, k = F(c)
+        g, k = F(c, extra=4.0)      # ghost in front of the faces so the cream does not tint it
         s += sph(g, RAD["ghost"] * k, tex(COL["ghost"]))
     # dashed cell
     corners = {(i, j, k): i * cell[0] + j * cell[1] + k * cell[2] for i in (0, 1) for j in (0, 1) for k in (0, 1)}
