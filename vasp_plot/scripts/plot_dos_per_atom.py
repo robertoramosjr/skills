@@ -32,9 +32,15 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import COL_W, FULL_W, plt, save  # noqa: E402
 
-# Okabe-Ito, same hues as the other figures of the paper (Ag red, Cr blue, O green, Nd purple)
-COLORS = {'Ag': '#D55E00', 'Cr': '#0072B2', 'O': '#009E73', 'Nd': '#CC79A7'}
-FALLBACK = ['#E69F00', '#56B4E9', '#222222', '#8C6D31']
+# Origin default sequence (user rule, 2026-11-09): 1 black, 2 red, 3 blue, 4 magenta -> Ag, Cr, O, Nd.
+# 'okabe' = previous Okabe-Ito scheme, kept only for --palette okabe.
+PALETTES = {
+    'origin': ({'Ag': '#000000', 'Cr': '#FF0000', 'O': '#0000FF', 'Nd': '#FF00FF'},
+               ['#008000', '#00FFFF', '#808000', '#800080']),
+    'okabe': ({'Ag': '#D55E00', 'Cr': '#0072B2', 'O': '#009E73', 'Nd': '#CC79A7'},
+              ['#E69F00', '#56B4E9', '#222222', '#8C6D31']),
+}
+COLORS, FALLBACK = PALETTES['origin']
 TDOS_FILL, TDOS_EDGE = '#E3E3E3', '#7A7A7A'
 BOX = dict(fc='white', ec='none', pad=1.0)  # solid, no alpha: keeps the dashed E_F line off the label
 
@@ -135,7 +141,10 @@ def main(argv=None):
     ap.add_argument('--legend-ncol', type=int, default=2)
     ap.add_argument('--label-pos', choices=['ul', 'll'], default='ul', help='structure label: upper/lower left')
     ap.add_argument('--sigma', type=float, default=0.1, help='Gaussian broadening (std, eV); 0 = raw DOSCAR')
+    ap.add_argument('--palette', choices=sorted(PALETTES), default='origin', help='line colours (default: Origin sequence)')
     a = ap.parse_args(argv)
+    global COLORS, FALLBACK
+    COLORS, FALLBACK = PALETTES[a.palette]
 
     plt.rcParams.update({'font.size': 10, 'axes.labelsize': 10, 'xtick.labelsize': 10, 'ytick.labelsize': 10,
                          'legend.fontsize': 9, 'font.family': 'serif',
