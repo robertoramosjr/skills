@@ -150,3 +150,14 @@ testes em andamento. Diferem do paper: o texto **reporta o que foi feito e medid
   as duas coerentes). Alterações são feitas nos arquivos segmentados de `Files/`.
 - **Why:** pedido do usuário em 2026-10-26 ao remover a frase sobre aprendizado ativo do cap. 5.
 - **Backup por segmento:** antes de editar `Files/X.tex`, copiar para `old/Files/X_vN.tex` (N inteiro crescente, sem sobrescrever); o arquivo de trabalho mantém o nome para não quebrar os `\input`.
+
+## 8. Rótulos de configurações/estruturas: nome de publicação, nunca o nome interno (regra do usuário, 2026-11-09)
+
+Nomes de pasta e de trabalho (`Ag_TeO_N1`, `Ag_O_F_OK`, `conf_03`, `top1`) **não vão para o paper**. Ao tirar um projeto do cluster para o texto:
+- **Rótulo de publicação com subíndices/sobrescritos em math** que dizem a estrutura, no estilo da notação de defeitos (ex.: `V_{Ag,T}` vacância em tetraedro de Ag; `2V_{Ag,TO1}` duas vacâncias, uma tetraédrica e uma octaédrica, 1ª em distância ao dopante). Definir uma macro (`\newcommand{\vcfg}[1]{\ensuremath{2V_{\mathrm{Ag,#1}}}}`) e usá-la em texto, tabelas e legendas, para trocar o esquema em um lugar só.
+- **Uma figura que mostre e nomeie cada configuração** (painel por configuração, mesma vista, legenda no painel/caption), logo onde os rótulos são definidos, antes de qualquer tabela ou discussão que os use. Sem ela o leitor não associa nome a estrutura; descrever só em texto com o nome interno não serve.
+- **Sítio vacante/ausente = "átomo fantasma"** (esfera translúcida no sítio) dentro do seu poliedro de coordenação; é a prática para mostrar onde a vacância está.
+- **Mapa nome interno → rótulo só no Suplemento** (tabela com a pasta entre parênteses). No texto principal, legendas, eixos e tabelas dos dados: só o rótulo novo. Figuras com rótulos internos (painéis de DOS, E_f, etc.) são refeitas com o rótulo novo.
+- **Rótulo único e estável:** definir o esquema (o que cada letra/índice significa, como o índice é ordenado) em uma frase no início de Resultados, apontando para a figura. Se o esquema mudar, mudar a macro e o mapa, nunca misturar os dois nomes no mesmo manuscrito.
+- Inserir a figura nova desloca a numeração: atualizar os "Fig. N" escritos à mão no Suplemento (o `\ref` não cruza arquivos) e conferir no PDF.
+- Exemplo real: Ag2CrO4:Nd, paper 2 (`Fig. 1` = `Figures/vacancy_configs.eps`, script `vasp_plot/scripts/plot_vacancy_configs.py`; mapa em `paper/plano_narrativo_paper2.md`).
