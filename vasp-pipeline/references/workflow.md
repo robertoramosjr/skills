@@ -25,7 +25,7 @@ Vale também para constituintes e fases de referência (Ag, Cr, Nd, O, óxidos p
 - Parâmetros de rede/volume: `extract_lattice_param.py` (lê `vasprun.xml`), `volume_strain_generator.py` para E(V).
 
 ## 3. Propriedades eletrônicas
-- **DOS:** estático em malha mais densa, `LORBIT=10/11`, `NEDOS` alto; `dos_analysis.py` (pymatgen `Vasprun`, smearing Gaussiano σ), por elemento/orbital; dados em `DOS_raw_data.csv`. PDOS projetada (`plot_pdos.py`).
+- **DOS:** estático em malha mais densa, `LORBIT=11`, **`NEDOS=6001` sempre** (regra do usuário, 2026-11-11); `dos_analysis.py` (pymatgen `Vasprun`, smearing Gaussiano σ), por elemento/orbital; dados em `DOS_raw_data.csv`. **Exigências do paper BaZrS3** (`publication_strategy.txt`): por dopante/concentração, tabela com gap PBE, direto×indireto e k do VBM/CBM (extraídos do `vasprun.xml`, ex. CaZrS3: 1,235 eV direto em Γ; BaZrS3 1,060 eV), mais TDOS/PDOS por elemento; ficam sempre `vasprun.xml` e CSV de origem. PDOS projetada (`plot_pdos.py`).
 - **Bandas:** `ICHARG=11` a partir do `CHGCAR` do estático; `gen_kpath.py` (pymatgen `HighSymmKpath`, KPOINTS em modo linha) — o caminho depende da célula *primitiva padrão*; se o POSCAR não é a primitiva padrão, converter antes ou o caminho fica errado. `plot_bands.py`, `plot_bands_dos.py`, `gen_bandgap_table.py`.
 - **Massa efetiva/transporte:** `extract_effective_mass.py` (lê uma tabela de transporte com Seebeck e concentração de portadores; tipo n/p pelo sinal do Seebeck; conferir o formato do CSV de entrada).
 - **Magnetismo:** `ISPIN=2` + `MAGMOM`; comparar ordenações (paralela × antiparalela) por energia; guardar momento por átomo (`magnetic_moment_comparison.*`).
