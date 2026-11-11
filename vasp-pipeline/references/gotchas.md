@@ -59,3 +59,8 @@ Ao montar Nd2O3, Ag2O e Cr2O3 (referências de μ) o assistente escolheu malhas 
   com `lattice_vectors`, `cartesian_site_positions`, `species_at_sites` e `_mp_stability` (E acima da casca, r2SCAN/GGA).
 - Pelo `urllib` do Python volta 403: mandar `User-Agent` explícito (ex. `curl/8`). Exemplo de uso:
   `~/work_vasp/BaZrS3/paw_pbe_1.125ENMAX_Etot/competing_phases/make_competing_phases.py` (fases concorrentes p/ Δμ).
+
+## harpia: `--mem=0` é recusado pelo QoS (2026-11-11)
+- `sbatch` com `#SBATCH --mem=0` (nó inteiro) falha com `QOSMaxMemoryPerJob`: o QoS `harpia_48a/48b` limita 48 G/job e a memória é 900 MB/CPU.
+- Usar `--mem` = 900M × CPUs do job (48 CPUs → `--mem=43200M`; 16 CPUs → `--mem=14400M`), igual ao job `743`.
+- Módulo VASP da harpia: `modmat/vasp/6.6.1-intel` (`vasp_std` + Intel MPI 2021.19). QoS: 1 job de 48 CPUs por partição (par48a/b), 16 em par16: jobs na mesma partição entram em sequência.
