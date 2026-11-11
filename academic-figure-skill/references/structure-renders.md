@@ -56,6 +56,7 @@ conda create -y -n render_env -c conda-forge python=3.11 povray ase pillow numpy
 | `gs eps2write` with `ColorImageFilter=/FlateEncode` → rangecheck | Ghostscript 9.27 only offers lossy JPEG there | do not use `eps2write` for this; use gs only to validate (`-sDEVICE=nullpage`) |
 | Atoms tiny in VESTA | VESTA draws ball-and-stick at 0.4 × the stored radius, and reads `STRUC` as fractional coordinates | store VESTA default radii (H 0.46, C 0.77, O 0.74); write a P1 box (`CELLP`, extent + 10 Å) with fractional coordinates |
 | Prenyl/alkyl chains stacked in depth | ring plane used as the view plane | use the best-fit plane of all atoms |
+| `Cannot open input file` with a path like `.../relatório_posdoc/...` | POV-Ray 3.7 cannot open paths with non-ASCII characters | run povray with `cwd=` the panel folder and bare file names (`+Iname.pov +Oname.png`); 2026-11-11, BaZrS3 `make_config_figure.py` |
 | Molecules small inside grid cells | common scale across conformers (intended) | accept, or use fewer columns |
 
 ## Verification
