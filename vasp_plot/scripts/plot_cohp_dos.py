@@ -20,6 +20,8 @@ ap.add_argument("--emin", type=float, default=-3); ap.add_argument("--emax", typ
 ap.add_argument("--center", default="Nd"); ap.add_argument("--near", type=float, default=4.0,
                 help="Cr com d(centro) < near (Å) = 'vizinhos'")
 ap.add_argument("--agO", type=float, default=2.6)
+ap.add_argument("--fs", type=float, default=10, help="fonte (pt) = tamanho impresso; fig. 7.0 in = figure* revtex")
+ap.add_argument("--height", type=float, default=4.2)
 a = ap.parse_args()
 out = a.out or os.path.join(a.dir, "cohp_dos")
 
@@ -57,8 +59,8 @@ def group(sel):
 pair = lambda x, y, e1, e2: {el(x), el(y)} == {e1, e2}
 groups = [
     (f"{a.center}–O", lambda x, y, d: pair(x, y, a.center, "O")),
-    ("Cr–O (all)", lambda x, y, d: pair(x, y, "Cr", "O")),
-    ("Ag–O (all)", lambda x, y, d: pair(x, y, "Ag", "O")),
+    ("Cr–O", lambda x, y, d: pair(x, y, "Cr", "O")),
+    ("Ag–O", lambda x, y, d: pair(x, y, "Ag", "O")),
 ]
 
 # ---- DOS (DOSCAR.lobster: bloco total + 1 bloco por átomo)
@@ -77,16 +79,16 @@ cen_up, cen_dn = cen[:, 1::2].sum(1), cen[:, 2::2].sum(1)
 Ed = tot[:, 0]
 
 plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "dejavuserif", "xtick.direction": "in",
-                     "ytick.direction": "in", "font.size": 8})
+                     "ytick.direction": "in", "font.size": a.fs})
 nP = 1 + len(groups)
-fig, axs = plt.subplots(1, nP, figsize=(7.0, 3.3), sharey=True, gridspec_kw={"wspace": 0.0})
+fig, axs = plt.subplots(1, nP, figsize=(7.0, a.height), sharey=True, gridspec_kw={"wspace": 0.0})
 B, R, K = "tab:blue", "tab:red", "k"
 ax = axs[0]
 ax.plot(tot[:, 1], Ed, color=B, lw=0.7); ax.plot(-tot[:, 2], Ed, color=R, lw=0.7)
 ax.fill_betweenx(Ed, cen_up * 5, color=B, alpha=0.35, lw=0); ax.fill_betweenx(Ed, -cen_dn * 5, color=R, alpha=0.35, lw=0)
 ax.plot([], [], color="0.4", lw=0.7, label="total"); ax.fill_between([], [], color="0.4", alpha=0.35, label=f"{a.center} ×5")
-ax.legend(frameon=False, loc="upper right", fontsize=6.5, handlelength=1.0, borderaxespad=0.2)
-ax.set_xlabel("DOS (states/eV)"); ax.set_ylabel(r"$E-E_F$ (eV)")
+ax.legend(frameon=False, loc="upper right", fontsize=a.fs, handlelength=1.0, borderaxespad=0.2)
+ax.set_xticks([-100, 0, 100]); ax.set_xlabel("DOS (states/eV)"); ax.set_ylabel(r"$E-E_F$ (eV)")
 for ax, (name, sel) in zip(axs[1:], groups):
     g, n = group(sel)
     ax.plot(g["up"][0], E, color=B, lw=0.7); ax.plot(g["dn"][0], E, color=R, lw=0.7); ax.plot(g["tot"][0], E, color=K, lw=0.8)
@@ -100,16 +102,18 @@ for ax, (name, sel) in zip(axs[1:], groups):
     lo = min(g[k][0][w].min() for k in ("up", "dn", "tot")); hi = max(g[k][0][w].max() for k in ("up", "dn", "tot"))
     pad = 0.08 * (hi - lo)
     ax.set_xlim(lo - pad, hi + 0.8 * (hi - lo))   # folga à direita p/ o texto (no gap)
-    ax.text(0.97, -0.55, f"{name}\n{n} bonds\n" r"$-$ICOHP " f"{g['tot'][1]:.2f}\n"
+    ax.set_title(name, fontsize=a.fs, pad=3)
+    ax.text(0.97, -0.72, r"$-$ICOHP " f"{g['tot'][1]:.2f}\n"
             r"$\uparrow$" f"{g['up'][1]:.2f} " r"$\downarrow$" f"{g['dn'][1]:.2f}",
-            transform=matplotlib.transforms.blended_transform_factory(ax.transAxes, ax.transData), ha="right", va="center", fontsize=6, linespacing=1.2)
+            transform=matplotlib.transforms.blended_transform_factory(ax.transAxes, ax.transData), ha="right", va="center", fontsize=a.fs, linespacing=1.2)
+    print(name, n, "bonds")
 for ax in axs:
     ax.axhline(0, color="0.4", lw=0.5, ls="--"); ax.axvline(0, color="0.6", lw=0.4)
-    ax.set_ylim(a.emin, a.emax); ax.tick_params(labelsize=7)
+    ax.set_ylim(a.emin, a.emax); ax.tick_params(labelsize=a.fs)
     ax.set_yticks(range(int(np.ceil(a.emin)), int(a.emax) + 1, 2))
 for ax in axs[1:]:
     ax.tick_params(left=False)
 # xlim por painel: simétrico no DOS, COHP auto com margem
-fig.subplots_adjust(left=0.08, right=0.99, bottom=0.14, top=0.98)
+fig.subplots_adjust(left=0.085, right=0.995, bottom=0.115, top=0.93)
 fig.savefig(out + ".png", dpi=300); fig.savefig(out + ".eps")
 print("ok", out, "near_cr:", sorted(near_cr))
