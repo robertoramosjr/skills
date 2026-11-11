@@ -49,3 +49,5 @@ Ao montar Nd2O3, Ag2O e Cr2O3 (referências de μ) o assistente escolheu malhas 
 
 ## Malha k do DOS (2026-11-11)
 - Regra do usuário: DOS sempre com kmesh **3× o do Etot** em cada eixo (CaZrS3: Etot 5×4×3 → DOS 15×12×9, job 711). Não reaproveitar a malha do Etot. `WAVECAR`/`CHG` do Etot vêm vazios com `LWAVE/LCHARG=.FALSE.` → DOS parte de `ISTART=0` (ou ligar LWAVE/LCHARG no Etot); com malha diferente o `ICHARG=1` não vale de qualquer forma.
+- Stress do access/coaraci (`job.sh` com loop `05..50`): ao fim cada pasta `l` **não tem CONTCAR** (o script faz `mv CONTCAR POSCAR`); a estrutura final é o `POSCAR` da pasta (conferir com `finalpos` do `vasprun.xml`). `POSCAR_n` são as entradas de cada repetição. Etot parte desse `POSCAR`. (CaZrS3, 2026-11-11)
+- Etot→DOS: o Etot do grupo sai com `WAVECAR`/`CHG` de 0 byte (`LWAVE/LCHARG=.FALSE.`); o DOS recomeça com `ISTART=0`.
