@@ -43,3 +43,6 @@ Ao montar Nd2O3, Ag2O e Cr2O3 (referências de μ) o assistente escolheu malhas 
 - Job 1931989 (Ag2CrO4 pristine_112, 832 e⁻, 48 threads OMP): na etapa COOP/COHP/ICOHP o `lobster` usou só ~1500–1700% de CPU (≈16/48) por horas. Projeção + DOS (~35 min) usam melhor; o resto do tempo (~4,5 h) é quase serial por par de ligação.
 - Regra do cofre (nó inteiro **usado**): não submeter um único `lobster` por nó com 48 threads. Dividir os `cohpGenerator` do `lobsterin` em vários diretórios (symlink de WAVECAR/POSCAR/INCAR/KPOINTS/POTCAR/vasprun), ~12–16 threads cada, rodando em paralelo (`&` + `wait`), ou várias estruturas ao mesmo tempo. Verificar com `ssh <nó> top -b -n2 -u roarj` após ~10 min (esperado ≈ 4800%).
 - Pendente validar: unir `ICOHPLIST`/`COHPCAR` das partes e adaptar `scripts/lobster_summary.py`.
+
+## Política de fila VASP (2026-11-11)
+- Usuário: rodar os jobs VASP na `gpu-x` sempre que couberem na A30 (24 GB), com o build OpenACC e a receita acima (`KPAR=1 NCORE=1`, 1 rank/GPU, sem `--exclusive`; array permitido, MaxJobsPU=3). Sonda curta antes de migrar célula grande (224 at./`ALGO=All` não validados). Frames/estruturas independentes → array.
