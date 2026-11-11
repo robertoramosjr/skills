@@ -35,7 +35,9 @@ from common import COL_W, FULL_W, plt, save  # noqa: E402
 # Origin default sequence (user rule, 2026-11-09): 1 black, 2 red, 3 blue, 4 magenta -> Ag, Cr, O, Nd.
 # 'okabe' = previous Okabe-Ito scheme, kept only for --palette okabe.
 PALETTES = {
-    'origin': ({'Ag': '#000000', 'Cr': '#FF0000', 'O': '#0000FF', 'Nd': '#FF00FF'},
+    'origin': ({'Ag': '#000000', 'Cr': '#FF0000', 'O': '#0000FF', 'Nd': '#FF00FF',
+               # AZrS3 (2026-11-11): Origin sequence in formula order, same colour for the A-site cation (Ba/Ca)
+               'Ba': '#000000', 'Ca': '#000000', 'Zr': '#FF0000', 'S': '#0000FF'},
                ['#008000', '#00FFFF', '#808000', '#800080']),
     'okabe': ({'Ag': '#D55E00', 'Cr': '#0072B2', 'O': '#009E73', 'Nd': '#CC79A7'},
               ['#E69F00', '#56B4E9', '#222222', '#8C6D31']),
