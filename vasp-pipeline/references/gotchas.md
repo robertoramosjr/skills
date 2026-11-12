@@ -74,3 +74,7 @@ Ao montar Nd2O3, Ag2O e Cr2O3 (referências de μ) o assistente escolheu malhas 
 - Passos eletrônicos máx por passo iônico (OSZICAR_* das stress, ALGO=All): Nd2O3 mediana 119 (máx 127), NdCrO3 93 (96); sem Nd: CrO3 44, CrO2 35, AgCrO2 28, Cr2O3 20, Ag2O 17. Nenhum INCAR tinha `LMAXMIX` (Cr d → 4; Nd f → 6).
 - `~/skills/global/scf_monitor.py`: `--calib OSZICAR...` (estatística) e `--check OSZICAR` (ciclo em andamento; exit 3 = sloshing). Critérios: (a) >60 passos, (b) sem melhora de 10× em min|dE| entre janelas de 20, (c) oscilação de sinal. Calibração em ~2100 ciclos convergidos: 0 falsos positivos em Ag2O/AgCrO2/Cr2O3/CrO2/CrO3, 1/308 em AgO, e dispara em 34/181 (Nd2O3) e 22–28/200 (NdCrO3) — ciclos que convergiriam só após 60–127 passos.
 - NÃO pega o travamento do VASP (`SDA:9`, 9 passos e parado): esse é do `run_watched`. Teste de efeito do `LMAXMIX=6` (job 1937336, `_lmaxmix_test/`): resultado pendente.
+
+## Metais (ZrS, Zr3S4, ZrS2) e scancel (2026-11-12)
+- Stress com ISMEAR=0/σ=0,01 oscila ±3 meV/átomo com l; com ISMEAR=1/σ=0,1 (`_MP01`) cai a ≤1 meV/átomo em l≥35–40 mas não zera. Escolher l no trecho estável e Etot com ISMEAR=1 σ=0,1 (reportar energy sigma->0). l=50 pode ser outlier (volume salta em ZrS2, vdW).
+- Antes de `scancel`+reenvio em outra partição, conferir `sacct`: job curto pode já ter terminado (808 mp9179 terminou em 7 min e o reenvio repetiu o cálculo).
