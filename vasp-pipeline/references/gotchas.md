@@ -69,3 +69,8 @@ Ao montar Nd2O3, Ag2O e Cr2O3 (referências de μ) o assistente escolheu malhas 
 - Jobs 1931613 (CrO3 l=15) e 1931621 (Ag2Cr2O7 l=50) ficaram TIMEOUT após 3 d, parados 55 h e 31 h: `ALGO=All`, `ISIF=3`, `ISTART=0`; DAV converge até o passo 8, `SDA:9` salta p/ E=+45/+86 eV (rms 626–1680) e o `saida` nunca mais cresce; `mpirun` vivo, sem erro. O gatilho STOPCAR de 60 min antes do fim não age em VASP travado.
 - Correção padrão: `~/skills/global/job_watchdog.sh` (`run_watched`). Teste de ALGO (Normal/Fast, 4 runs de 12 ranks) em `chemical_potentials/_algo_test/`.
 - Diagnóstico ao voltar: `ls -l --time-style=full-iso saida_*.out OSZICAR` vs hora do TIMEOUT; log de job sem linha nova por >1 h = travou, não "lento".
+
+## Charge sloshing em óxidos com Nd: detector offline calibrado (2026-11-12, Ag2CrO4 fases concorrentes)
+- Passos eletrônicos máx por passo iônico (OSZICAR_* das stress, ALGO=All): Nd2O3 mediana 119 (máx 127), NdCrO3 93 (96); sem Nd: CrO3 44, CrO2 35, AgCrO2 28, Cr2O3 20, Ag2O 17. Nenhum INCAR tinha `LMAXMIX` (Cr d → 4; Nd f → 6).
+- `~/skills/global/scf_monitor.py`: `--calib OSZICAR...` (estatística) e `--check OSZICAR` (ciclo em andamento; exit 3 = sloshing). Critérios: (a) >60 passos, (b) sem melhora de 10× em min|dE| entre janelas de 20, (c) oscilação de sinal. Calibração em ~2100 ciclos convergidos: 0 falsos positivos em Ag2O/AgCrO2/Cr2O3/CrO2/CrO3, 1/308 em AgO, e dispara em 34/181 (Nd2O3) e 22–28/200 (NdCrO3) — ciclos que convergiriam só após 60–127 passos.
+- NÃO pega o travamento do VASP (`SDA:9`, 9 passos e parado): esse é do `run_watched`. Teste de efeito do `LMAXMIX=6` (job 1937336, `_lmaxmix_test/`): resultado pendente.
