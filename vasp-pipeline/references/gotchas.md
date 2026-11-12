@@ -64,3 +64,8 @@ Ao montar Nd2O3, Ag2O e Cr2O3 (referências de μ) o assistente escolheu malhas 
 - `sbatch` com `#SBATCH --mem=0` (nó inteiro) falha com `QOSMaxMemoryPerJob`: o QoS `harpia_48a/48b` limita 48 G/job e a memória é 900 MB/CPU.
 - Usar `--mem` = 900M × CPUs do job (48 CPUs → `--mem=43200M`; 16 CPUs → `--mem=14400M`), igual ao job `743`.
 - Módulo VASP da harpia: `modmat/vasp/6.6.1-intel` (`vasp_std` + Intel MPI 2021.19). QoS: 1 job de 48 CPUs por partição (par48a/b), 16 em par16: jobs na mesma partição entram em sequência.
+
+## VASP travado sem erro: watchdog de inatividade (2026-11-12, Ag2CrO4 fases concorrentes, coaraci)
+- Jobs 1931613 (CrO3 l=15) e 1931621 (Ag2Cr2O7 l=50) ficaram TIMEOUT após 3 d, parados 55 h e 31 h: `ALGO=All`, `ISIF=3`, `ISTART=0`; DAV converge até o passo 8, `SDA:9` salta p/ E=+45/+86 eV (rms 626–1680) e o `saida` nunca mais cresce; `mpirun` vivo, sem erro. O gatilho STOPCAR de 60 min antes do fim não age em VASP travado.
+- Correção padrão: `~/skills/global/job_watchdog.sh` (`run_watched`). Teste de ALGO (Normal/Fast, 4 runs de 12 ranks) em `chemical_potentials/_algo_test/`.
+- Diagnóstico ao voltar: `ls -l --time-style=full-iso saida_*.out OSZICAR` vs hora do TIMEOUT; log de job sem linha nova por >1 h = travou, não "lento".
