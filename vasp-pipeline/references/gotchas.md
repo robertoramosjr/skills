@@ -78,3 +78,5 @@ Ao montar Nd2O3, Ag2O e Cr2O3 (referências de μ) o assistente escolheu malhas 
 ## Metais (ZrS, Zr3S4, ZrS2) e scancel (2026-11-12)
 - Stress com ISMEAR=0/σ=0,01 oscila ±3 meV/átomo com l; com ISMEAR=1/σ=0,1 (`_MP01`) cai a ≤1 meV/átomo em l≥35–40 mas não zera. Escolher l no trecho estável e Etot com ISMEAR=1 σ=0,1 (reportar energy sigma->0). l=50 pode ser outlier (volume salta em ZrS2, vdW).
 - Antes de `scancel`+reenvio em outra partição, conferir `sacct`: job curto pode já ter terminado (808 mp9179 terminou em 7 min e o reenvio repetiu o cálculo).
+
+- **2026-11-12 (BaZrS3) — μ elementares em outra escada de ENCUT:** `pure_athoms/*_OK` rodados a 528 eV (stress 1056, ENMAX de outro estudo) enquanto hospedeiro, supercélulas e fases concorrentes estavam a 389,66 (1.125×346,364). O paper afirmava "same parameters". Antes de qualquer ΔH_f/E_f: `grep 'ENCUT  =' */OUTCAR` em TODAS as referências e conferir que é o mesmo número do hospedeiro (e o mesmo ISPIN/POTCAR). E_b de complexos não depende de μ; ΔH_f, polígono e E_f com ΔN≠0 dependem.
