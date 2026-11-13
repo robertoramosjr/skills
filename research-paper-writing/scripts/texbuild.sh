@@ -28,6 +28,8 @@ while [ $# -gt 0 ]; do
 done
 [ ${#FILES[@]} -gt 0 ] || { echo "uso: $0 arquivo.tex [--png]"; exit 1; }
 
+# harpia: sem conda; env criado com micromamba em ~/micromamba/envs/writing_env
+[ -x "$HOME/micromamba/envs/$ENV/bin/tectonic" ] && export PATH="$HOME/micromamba/envs/$ENV/bin:$PATH"
 if command -v tectonic >/dev/null 2>&1 && command -v gs >/dev/null 2>&1; then
   RUN=""
 else

@@ -24,8 +24,8 @@ import ase.io
 # Radii: r_C = 0.30 A; ratios from the reference (r_H/r_C = 0.575, r_O/r_C = 0.94).
 # Bond radius: r_bond/r_C = 0.33 measured as full width ~78 px vs C radius ~120 px.
 STYLE = {
-    "color": {"H": "#1818f9", "C": "#f98e21", "O": "#f8211f"},
-    "radius": {"H": 0.17, "C": 0.30, "O": 0.28},
+    "color": {"H": "#1818f9", "C": "#f98e21", "O": "#f8211f", "Zr": "#c68042"},  # Zr: padrão do usuário
+    "radius": {"H": 0.17, "C": 0.30, "O": 0.28, "Zr": 0.42},
     "bond_radius": 0.10,
     "bond_factor": 1.2,
     "background": "white",

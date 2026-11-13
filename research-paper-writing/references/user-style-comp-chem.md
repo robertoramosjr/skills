@@ -129,6 +129,9 @@ First, ... Second, ... Third, ...", "Two further points are worth recording."
 - Pitfall (2026-11-05): with siunitx v3, `\SI{5}{\mu_B}` stops the compilation
   ("Missing $ inserted"). Declare `\DeclareSIUnit{\muB}{\ensuremath{\mu_{\mathrm{B}}}}`
   and write `\SI{5}{\muB}`; `$\mu_B$` in math mode is fine.
+- Pitfall (2026-11-13): tectonic's bundle ships mhchem v4.09 (2021), which has `\ce` but **no `\ch`** ("Undefined
+  control sequence" at the first `\ch{}`, even in a minimal doc). Put `\providecommand{\ch}{\ce}` right after
+  `\usepackage[version=4]{mhchem}` (does nothing on newer TeX Live / Overleaf).
 - In the chat (not in the paper): list the contradictions found between text,
   figures and data files, and the new `\todo{}` items.
 

@@ -20,11 +20,14 @@ Widths: print width of the journal column — 86 mm single structure / 178 mm gr
 | H | `#1818f9` (blue) | 0.17 | 0.46 |
 | C | `#f98e21` (orange) | 0.30 | 0.77 |
 | O | `#f8211f` (red) | 0.28 | 0.74 |
+| Zr | `#c68042` = rgb(198,128,66) (**padrão do usuário, 2026-11-13**) | 0.42 (cristal) | 1.60 |
 
 - Bonds: cylinders r = 0.10 Å, split at mid-length, each half in its atom's colour; bonded if d < 1.2 × (sum of covalent radii).
 - White background, no axes, no labels on single structures.
 - Finish: `ambient 0.25 diffuse 0.75 specular 0.3 roughness 0.01 phong 0.9 phong_size 90`; key light 1.0 upper-left-front, fill light 0.25 shadowless. This gives the sharp white highlight of VESTA.
 - Colours sampled from a VESTA render; other elements: sample the same way (sphere body, away from the highlight).
+- **Cores fixadas pelo usuário (usar sempre):** Zr `#c68042` (198,128,66), O `#f8211f` (vermelho). Vacância de O adicionada: `#87cefa` (135,206,250), esfera quase opaca (transmit ≤ 0,15) + anel escuro; cinza claro some no meio da rede (2026-11-13). Referência de cristal com células/supercélulas dopadas: `~/work_cp2k/ZrO2/ZrO2:Y_Ryan/Figures/fases_zro2/make_fig_fases.py`.
+- Supercélula com defeito: escolher dopante/vacância só em sítios internos (fora das faces, senão aparecem repetidos como imagens) e medir vizinhança por distância DIRETA, não `get_distance` (imagem mínima junta átomos que na figura ficam longe).
 
 ## Orientation
 1. Normal of the best-fit plane of **all atoms** (smallest-variance axis) along the view axis: chains open, nothing stacked in depth.
