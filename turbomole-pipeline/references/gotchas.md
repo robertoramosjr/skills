@@ -178,4 +178,8 @@ Conteúdo: [define](#define-e-input) · [Funcionais/TD-DFT](#funcionais-e-propri
 
 ## riper (2026-11-12, Ag2SeO3)
 - O "Band gap" impresso no fim do `riper.out` (e "Current HOMO-LUMO gap") pode ser artefato (deu 0,000918 Ha com gap real de 1,87 eV; uma banda com ocupação 0,007). Ler o gap de `riper_bands.txt` (blocos `k-point` / bandas+ocupação): VBM = maior banda com occ>1, CBM = menor sem.
-- `jobex -riper -c N`: com `-c 1` valida `$optcell` + `weight derivatives` em ~10 min (a célula é atualizada no `control`). `job_riper.sh` aceita `JOBEX_CYCLES` (padrão 200).
+- `jobex -riper -c N`: com `-c 1` valida `$optcell` + `weight derivatives` em ~10 min (a célula é atualizada no `control`). `job_riper.sh` aceita `JOBEX_CYCLES` (padrão 800, regra 10).
+- **Opt de célula com smearing pode "convergir" num estado metálico espúrio (job 816, 2026-11-12):** `GEO_OPT_CONVERGED` em 108 ciclos, mas V −6,8 % (CP2K PBEsol −2,2 %), Ag–Ag 3,35→2,80 Å e nível de Fermi dentro da CB só em Γ (banda N+1 com occ 1,77). Depois de todo `$optcell`: rodar `~/work_turbomole/scripts/riper_bandgap.py <dir>/riper_bands.txt --nocc N` (ocupação fracionária ≠ 0 ou bandas ocupadas por k ≠ N em isolante = suspeito) e comparar a célula com o experimental e com plane-wave antes de usar a geometria.
+- Base periódica alternativa à pob: `~/work_turbomole/scripts/prune_basis.py` (resolve os `->` da `basen` e remove primitivas soltas < 0,1; escreve `$basis`+`$ecp` locais → `$basis file=basis`/`$ecp file=basis`). def2-TZVP-p01 lida OK pelo riper 8.0.1 (job 819).
+- Sem `sigma` no `$riper` = σ 0 (ocupação inteira; manual, palavras-chave do riper).
+
