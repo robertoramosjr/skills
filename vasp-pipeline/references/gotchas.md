@@ -81,3 +81,9 @@ Ao montar Nd2O3, Ag2O e Cr2O3 (referências de μ) o assistente escolheu malhas 
 
 - **2026-11-12 (BaZrS3) — μ elementares em outra escada de ENCUT:** `pure_athoms/*_OK` rodados a 528 eV (stress 1056, ENMAX de outro estudo) enquanto hospedeiro, supercélulas e fases concorrentes estavam a 389,66 (1.125×346,364). O paper afirmava "same parameters". Antes de qualquer ΔH_f/E_f: `grep 'ENCUT  =' */OUTCAR` em TODAS as referências e conferir que é o mesmo número do hospedeiro (e o mesmo ISPIN/POTCAR). E_b de complexos não depende de μ; ΔH_f, polígono e E_f com ΔN≠0 dependem.
 - **2026-11-13 — Slurm `COMPLETED` não prova convergência; checar `F=` no OSZICAR.** Ag2CrO4:Nd 2V_Ag set2 (222 at.), `ALGO=Normal` do zero: 1ª leva 1933995–99 e 2ª 1937828–36 divergiram (TT_NN 1937829: E→−1e9 eV, parou no NELM=200, 0 linhas `F=`, exit 0, ~1700 núcleo-h). Nd exige `ALGO=All` (4f). Ressubmetidos 1938698–706 com `ALGO=All`; atenção ao OOM do gotcha de 2026-11-08 (SDA em >200 at.) — conferir MaxRSS dos primeiros passos.
+
+## EDWAV `gradient is not orthogonal` (rot.F:874) com ALGO=All (2026-11-14, Ag2CrO4:Nd 222 at., 1645 e)
+- Causa (wiki Known issues #111, aberto desde 6.1.0): ALGO=All partindo de carga atômica/sem WAVECAR perde a ortonormalidade no delay (NELMDL); o 1º passo CG acusa pelo teste ABSOLUTO 1E-4. Erro cai no fim do delay (SCF 5 com NELMDL=-5, SCF 12 com -12; Damped idem).
+- NÃO resolvem: NCORE, ALGO=Damped, EDIFF=1E-4, NELMDL=-30 (diverge p/ baixo dentro do delay). Sinal precoce: E do delay estabiliza (~−1809) e depois deriva (−1843…−2076), nº de elétrons ≠ NELECT, M deriva.
+- Padrão SAUDÁVEL: delay monótono; 1º passo CG SALTA PARA CIMA (+544 eV) e volta ao mínimo em ~15–100 passos (Nd convergidos partiram de CHGCAR/WAVECAR reais, E inicial ≈ −1788). Trava `E<-3000` só vale p/ divergência PARA BAIXO no delay; nunca matar por salto para cima.
+- Detalhe e canários: cofre `02_Memory/vasp/ag2cro4.md` e `…/vacancies_set2/PLANO.md`.
