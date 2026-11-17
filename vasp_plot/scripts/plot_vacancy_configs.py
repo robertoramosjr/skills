@@ -53,7 +53,9 @@ FRONT_SHIFT = 80.0   # A, see build_scene.F
 FACE_T = 0.50        # transparency of the polyhedron faces
 BOND_MAX = {("Ag", "O"): 2.75, ("Cr", "O"): 2.0, ("Nd", "O"): 2.8}
 IMG_TOL = 0.02   # fractional margin: atoms this close to a cell face are repeated on the opposite face
-FIN = ("finish { ambient 0.22 diffuse 0.78 specular 1.0 roughness 0.004 phong 1.0 phong_size 250 }")   # shiny (user, 2026-11-09)
+FIN = ("finish { ambient 0.16 diffuse 0.72 specular 1.0 roughness 0.0015 phong 1.0 phong_size 70 }")   # polished billiard balls (user, 2026-11-17)
+# Highlights need NON-shadowless lights (POV-Ray: shadowless lights give no specular/phong); shadows are removed per
+# object with no_shadow instead (no black half-moons, see crystal-defect-renders.md).
 TILT_V, TILT_U = 28.0, 14.0   # deg: view rotation about the vertical / horizontal screen axes
 
 
@@ -148,11 +150,11 @@ def V(p):
 
 
 def sph(p, r, tx):
-    return f"sphere {{ {V(p)}, {r:.4f} {tx} }}\n"
+    return f"sphere {{ {V(p)}, {r:.4f} {tx} no_shadow }}\n"
 
 
 def cyl(a, b, r, tx):
-    return f"cylinder {{ {V(a)}, {V(b)}, {r:.4f} {tx} }}\n"
+    return f"cylinder {{ {V(a)}, {V(b)}, {r:.4f} {tx} no_shadow }}\n"
 
 
 def tex(h):
@@ -215,7 +217,7 @@ def build_scene(d, centre, half_u, half_v):
         for f in faces:
             q = [fp[k][0] for k in f]
             s += (f"triangle {{ {V(q[0])}, {V(q[1])}, {V(q[2])} pigment {{ rgbt <{pc[0]:.3f},{pc[1]:.3f},{pc[2]:.3f},{FACE_T}> }} "
-                  f"finish {{ ambient 0.8 diffuse 0.2 }} }}\n")
+                  f"finish {{ ambient 0.8 diffuse 0.2 }} no_shadow }}\n")
         g, k = F(c, extra=4.0)      # ghost in front of the faces so the cream does not tint it
         s += sph(g, RAD["ghost"] * k, tex(COL["ghost"]))
     # dashed cell
@@ -230,8 +232,8 @@ def build_scene(d, centre, half_u, half_v):
     head = ["background { color rgb <1,1,1> }", "camera {", "  location <0,0,-1000>", "  look_at <0,0,0>",
             f"  angle {math.degrees(2 * math.atan(half_u / 1000)):.6f}",
             f"  right <{2 * half_u:.5f},0,0>", f"  up <0,{2 * half_v:.5f},0>", "}",
-            "light_source { <-250,250,-500> color rgb <1,1,1> shadowless }",
-            "light_source { <300,-150,-400> color rgb <0.25,0.25,0.25> shadowless }"]
+            "light_source { <-250,250,-500> color rgb <1,1,1> }",
+            "light_source { <300,-150,-400> color rgb <0.25,0.25,0.25> }"]
     return "\n".join(head) + "\n" + s
 
 

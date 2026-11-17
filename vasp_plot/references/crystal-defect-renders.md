@@ -18,8 +18,8 @@ Caso de origem: Fig. 1 do paper 2 Ag2CrO4:Nd (`paper/Figures/vacancy_configs.eps
 - Vista: c horizontal, b vertical, a para dentro, giro 28° (vertical) e 14° (horizontal); câmera perspectiva a 1000 Å com `angle` (o `orthographic` falha neste build).
 - Ligações: cilindros bicolores (cada metade na cor do átomo), r = 0,07 Å, cortes Ag–O 2,75, Cr–O 2,0, Nd–O 2,8 Å. Célula tracejada preta (segmentos de 0,7 Å alternados), fundo branco.
 - **Cores entram em sRGB direto, SEM linearizar** (este POV-Ray não codifica gama na saída; medido: corpo renderizado = valor de entrada). Linearizar como no `render_structures.py` deixou tudo escuro e saturado.
-- Luzes **sem sombra** (`shadowless`; sombras davam meias-luas pretas nas esferas, a referência não tem) e **à frente de todos os objetos** (z ≤ −500; os objetos da camada da frente ficam em z ≈ −80: luz atrás deles = esfera preta).
-- **Brilho** (pedido do usuário): `finish { ambient 0.22 diffuse 0.78 specular 1.0 roughness 0.004 phong 1.0 phong_size 250 }`. `reflection` deixa o Ag granulado: não usar.
+- **Sem sombras via `no_shadow` em cada objeto, NUNCA luz `shadowless`** (2026-11-17): luz `shadowless` do POV-Ray não gera realce especular/phong, então nenhum `finish` brilha (foi assim de 11-09 a 11-17). Sombras davam meias-luas pretas; `no_shadow` nos objetos as tira e mantém o realce. Luzes **à frente de todos os objetos** (z ≤ −500; os objetos da camada da frente ficam em z ≈ −80: luz atrás deles = esfera preta).
+- **Brilho de bola de bilhar polida** (usuário, 2026-11-17): `finish { ambient 0.16 diffuse 0.72 specular 1.0 roughness 0.0015 phong 1.0 phong_size 70 }` (ponto branco nítido + halo; 2º reflexo fraco da luz de preenchimento). `reflection` (com ou sem fresnel) deixa a superfície granulada: não usar.
 - **Camada da frente para poliedros e fantasmas:** átomos de Ag escondem o poliedro. Mover os objetos `FRONT_SHIFT`=80 Å em direção à câmera e **reescalar a parte lateral por (1000+w−Δ)/(1000+w)** (e os raios pelo mesmo fator) mantém a projeção idêntica e os põe por cima. O fantasma vai 4 Å mais à frente que as faces, senão as faces coloridas o tingem (azul sob creme virou verde).
 - Poliedro: arestas (cilindros r 0,055) + faces `triangle` com `rgbt` (transparência 0,5), vértices de `ConvexHull` (octaedro, 12 arestas) ou todas as 6 arestas (tetraedro). Cores: creme `#F3E3B0` (arestas `#C8A24A`), fantasma azul-céu `#8FD3F4` (pedidos do usuário).
 
@@ -38,7 +38,8 @@ Caso de origem: Fig. 1 do paper 2 Ag2CrO4:Nd (`paper/Figures/vacancy_configs.eps
 |---|---|---|
 | Fundo preto no PNG | POV-Ray gera RGBA | colar sobre branco com a máscara alfa |
 | Esferas pretas/escuras no objeto da frente | luz atrás da camada deslocada | luzes em z ≤ −500 |
-| Meias-luas pretas nas esferas | sombras projetadas | `shadowless` |
+| Meias-luas pretas nas esferas | sombras projetadas | `no_shadow` nos objetos (não `shadowless`) |
+| Esferas foscas, `finish` não muda nada | luz `shadowless` não faz especular | luz normal + `no_shadow` |
 | Poliedro/fantasma escondido por Ag | oclusão | camada da frente (§2) |
 | Fantasma verde-acinzentado | faces coloridas sobre o fantasma | fantasma 4 Å mais à frente |
 | Vacância "extra" na borda da caixa | imagem periódica do fantasma | sem imagens para fantasmas |
