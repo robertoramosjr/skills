@@ -2,7 +2,7 @@
 
 Conteúdo: [1 Convergência](#1-convergência) · [2 Relaxação/estático](#2-relaxação-e-estático) · [3 Propriedades](#3-propriedades-eletrônicas) · [4 Superfícies](#4-slabs-energia-de-superfície-wulff) · [5 Defeitos](#5-dopagem-vacâncias-energia-de-formação) · [6 Moléculas/DFPT](#6-moléculas-dfpt-phonopy-wannier)
 
-Estrutura de pastas observada: `<material>/paw_pbe_2xENMAX_Stress[_OK]/`, `paw_pbe_1.125xENMAX_Etot/`, `..._DOS[_OK]/`, `..._bands/`, `pristine_materials_stress/` (constituintes), `DEFECT_MODELS/`, `doping_studies/`. Fases polimórficas em subpastas (`ZrO2_<fase>_…`).
+Estrutura de pastas observada: `<material>/paw_pbe_2xENMAX_stress[_OK]/`, `paw_pbe_1.125xENMAX_Etot/`, `..._DOS[_OK]/`, `..._bands/`, `pristine_materials_stress/` (constituintes), `DEFECT_MODELS/`, `doping_studies/`. Fases polimórficas em subpastas (`ZrO2_<fase>_…`).
 
 ## 0. O RITO (obrigatório): stress → escolha de k → Etot → DOS
 **Nunca pular o stress nem escolher a malha k à mão.** Ordem fixa, detalhada na tabela do topo do `SKILL.md`:

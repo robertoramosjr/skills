@@ -3,6 +3,8 @@ name: cp2k-pipeline
 description: Pipeline, regras e fatos verificados para cálculos CP2K (GPW/Quickstep, PBE, DZVP-MOLOPT) do usuário em access (cp2k/2026.1, MPICH) e coaraci (2025.1 psmp / 2026.2 ssmp) — convergência CUTOFF/REL_CUTOFF (método 2D), k-mesh, CELL_OPT, bandas, PDOS, slabs/energia de superfície/Wulff/forma de crescimento, híbridos RI-HFXk (HSE06/PBE0, bloqueio de memória), migração VASP→CP2K. Use SEMPRE que o usuário for iniciar, retomar ou depurar algo em CP2K (.inp, .out, .restart, cp2k.psmp/ssmp, mpiexec/srun, &QS, &KPOINTS, &OT, BAND_STRUCTURE, PDOS, work_cp2k, ZrO2, TiO2), ou perguntar "faz no CP2K o que fazíamos no VASP" — mesmo sem dizer "CP2K".
 ---
 
+> **Nomes de pasta: padrão obrigatório** — ver `~/cofre/02_Memory/meta/nomenclatura-pastas.md` (`<material>/<tipo>_<base>_<funcional>[_OK]`; VASP: `paw_<func>_<2x|1.125x>ENMAX_<tipo>`; tipos em minúsculas: stress, etot…; `_OK` ao terminar; nunca renomear job rodando).
+
 # Pipeline CP2K
 
 Pipeline reconstruído e versionado em `~/work_cp2k` (= `git@github.com:robertoramosjr/cp2k_scripts.git`, `main`; só código, dados nunca). Verificado contra a documentação oficial e contra builds reais (2025.1, 2026.1, 2026.2). Os detalhes completos estão em `references/` — este arquivo é o que se precisa antes de tocar em qualquer coisa.

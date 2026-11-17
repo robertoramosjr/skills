@@ -3,6 +3,8 @@ name: turbomole-pipeline
 description: Pipeline completo e regras duras para iniciar e conduzir um estudo em TURBOMOLE (DFT/TD-DFT/IR/Raman/DOS/Bader/SEN, funil de confôrmeros CREST→r2SCAN-3c→HSE06, termodinâmica/pKa com COSMO) no cluster SLURM (access/coaraci). Use SEMPRE que o usuário for começar, planejar, retomar ou depurar um estudo em Turbomole — menções a define, coord, control, ridft, escf, aoforce, jobex, dscf -proper, HSE06, def2-TZVP, TD-DFT, Bader, DOS/PDOS, NTO, freeh, cosmoprep, CREST, confôrmeros, "novo estudo/molécula em turbomole", "rodar no cluster", "sbatch", ou quando um output do Turbomole "terminou" suspeitamente rápido — mesmo que ele não peça a skill pelo nome.
 ---
 
+> **Nomes de pasta: padrão obrigatório** — ver `~/cofre/02_Memory/meta/nomenclatura-pastas.md` (`<material>/<tipo>_<base>_<funcional>[_OK]`; VASP: `paw_<func>_<2x|1.125x>ENMAX_<tipo>`; tipos em minúsculas: stress, etot…; `_OK` ao terminar; nunca renomear job rodando).
+
 # Pipeline TURBOMOLE
 
 Fluxo reaproveitável de **geometria → cálculo → extração → figura** para qualquer molécula. O que muda entre estudos é só o que está entre `<...>`; nunca cole placeholder literal num comando.

@@ -11,6 +11,8 @@ CRYSTAL (LCAO, Gaussianas) entrou para fazer **bandas/DOS com funcional híbrido
 
 ## 🚨 O RITO — OBRIGATÓRIO, SEMPRE NESTA ORDEM, COM CADA FUNCIONAL
 
+> **Nomes de pasta: padrão obrigatório** `work_crystal/<material>/<tipo>_<base>_<funcional>[_OK]` (ex.: `ag2seo3/stress_pob-TZVP-rev2_b3lyp`; `cry_input.py --root <material> --name <tipo>_<base>_<funcional>`); ver `~/cofre/02_Memory/meta/nomenclatura-pastas.md`. `_OK` ao terminar.
+>
 > Toda estrutura nova começa pelo stress com convergência de k. Nunca pela energia, nunca pela DOS, nunca com SHRINK escolhido à mão (a falha registrada no VASP em 2026-11-09). **Rito completo para cada funcional** (geometria própria; decisão do usuário, 2026-11-17).
 
 | # | Etapa | VASP | CRYSTAL | Fecha a etapa |
@@ -36,7 +38,7 @@ CRYSTAL (LCAO, Gaussianas) entrou para fazer **bandas/DOS com funcional híbrido
 2. **Reportar custo (núcleo-h, walltime) antes de qualquer `sbatch`**; um passo por vez; nada pesado no login (teste de segundos com 2–4 threads é aceito).
 3. **Validar por texto, nunca por exit code/`sacct`:** `EEEEEEEEEE TERMINATION` + `SCF ENDED - CONVERGENCE` (+ `OPT END - CONVERGED`). Properties: `TERMINATION` e nenhum `ERROR ****` (o `properties` sai com rc 0 mesmo com erro).
 4. **Limites padrão:** SCF `MAXCYCLE 1500`, OPTGEOM `MAXCYCLE 800`; OPTGEOM com **`ONELOG`** (sem ele o log vai para `SCFOUT.LOG` depois do 1º ciclo, o `crystal.out` para de crescer e o watchdog pode matar um job saudável).
-5. **Grupo espacial real** (`cry_symm.py`), nunca P1: TiO2 P1 = 19 k na IBZ × 9 em P4₂/mnm. Ag2SeO3 = **P2₁/c** (24 → 6 átomos; `~/work_crystal/geom/ag2seo3_P21c.crygeo`, verificado 2026-11-17).
+5. **Grupo espacial real** (`cry_symm.py`), nunca P1: TiO2 P1 = 19 k na IBZ × 9 em P4₂/mnm. Ag2SeO3 = **P2₁/c** (24 → 6 átomos; `~/work_crystal/ag2seo3/geom/ag2seo3_P21c.crygeo`, verificado 2026-11-17).
 6. **Paralelização = §2. Não inventar layout nem variáveis**: usar o `job_crystal.sh` (bloco de ambiente medido).
 7. Watchdog obrigatório (`~/skills/global/job_watchdog.sh`, já no job; desde 2026-11-17 preserva o stdin, `run_watched prog < INPUT` funciona).
 8. Não decidir sozinho: funcional, base, malha final, spin/ordem magnética, layout diferente do padrão.
