@@ -22,24 +22,29 @@ TOLINTEG 8 8 8 8 16   TOLDEE 8   FMIXING 30   MAXCYCLE 1500   BIPOSIZE/EXCHSIZE 
 [SPINLOCK] [LEVSHIFT] [GUESSP] [PPAN]
 END
 ```
-- **Arquivo `crygeo`** = as linhas de `CRYSTAL` até o último átomo, escritas à mão a partir da CIF (grupo + unidade assimétrica). Conferir no `crystal.out` (`NUMBER OF SYMMETRY OPERATORS`, lista `ATOMS IN THE UNIT CELL`) que o número de átomos bate. Setting não padrão / origem: ver IFHR/IFSO (p.19-20).
+- **Arquivo `crygeo`** = as linhas de `CRYSTAL` até o último átomo (grupo + unidade assimétrica). Gerar com `cry_symm.py` (spglib) a partir de POSCAR/CIF/P1, com `--verify` (o CRYSTAL reconstrói a célula com TESTGEOM e o script compara volume, composição e distâncias): `~/micromamba/envs/render_env/bin/python $S/cry_symm.py POSCAR -o mat.crygeo --verify`. Conferir no `crystal.out` (`NUMBER OF SYMMETRY OPERATORS`, lista `ATOMS IN THE UNIT CELL`) que o número de átomos bate. Setting não padrão / origem: ver IFHR/IFSO (p.19-20).
 - **Geometria de etapa anterior:** `--geom runs/X/fort.34` → `EXTERNAL` (o script copia o `fort.34` para o run dir; o job o leva ao scratch). O `fort.34` traz célula primitiva, operações de simetria e átomos (formato p.450-451).
 - **Base:** pob-TZVP-rev2 (`~/work_crystal/basis/<El>_pob-TZVP-rev2.basis`; Ag com ECP 28 → Z 247). Internas disponíveis por `BASISSET`: STO-3G/6G, POB-DZVP, POB-DZVPP, POB-TZVP, POB-DZVP-REV2, POB-TZVP-REV2 (Z 1–35, 37–53, 55–56, 72–84 no TZVP-rev2; p.28). Dependência quase linear e bases para iônicos: cap. 17.
 - **TOLINTEG** (p.130): 5 limiares de truncamento das séries de Coulomb/troca (default 7 7 7 7 14). O usuário usa **8 8 8 8 16** (mais rígido; recomendado para híbridos e otimização de célula). Mudar só com teste.
 - **Grade** (p.143-147): XLGRID é o default do CRYSTAL23; o usuário usa **XXLGRID**. Manter a mesma em todo o rito.
 
-## 1. Convergência de k-points
+## 1. Convergência de k-points — mesmo padrão do VASP (stress por malha)
+
+O rito do VASP (`bash_stress_coaraci.sh` + `extract_stress_data.py`, repo `robertoramosjr/VASP`, `scripts/`): uma pasta por comprimento `l = 05…50` (passo 5) do `KPOINTS Auto`, **ISIF=3 completo em cada uma**, todas em sequência num único job que se ressubmete quando faltam < 90 min; tabela `dados_convergencia_final.csv` (Kdensity, Kmesh, Lattice_Param, Energy, Pasta). No CRYSTAL:
 
 ```bash
 python3 $S/cry_input.py --geom mat.crygeo --basis-dir basis --basis-tag pob-TZVP-rev2 --func <F> \
-        --mode kconv --klengths "5 10 15 20 25 30 35 40" --name <f>_kconv [--cell-from X/crystal.out] [--kconv-opt]
-for d in runs/<f>_kconv_l*; do sbatch $S/job_crystal.sh $d; done     # custo reportado antes!
-python3 $S/cry_parse.py kconv runs/<f>_kconv_l* --csv kconv_<f>.csv
+        --mode kconv --name <f>_stress_kconv [--cell-from X/crystal.out]   # -> runs/<f>_stress_kconv/05 … /50
+sbatch $S/job_crystal.sh runs/<f>_stress_kconv                            # custo reportado antes!
+python3 $S/cry_parse.py kconv runs/<f>_stress_kconv                        # -> dados_convergencia_final.csv
 ```
-- **Funcional da série = funcional de produção** (a malha que satura em PBE costuma servir para o híbrido, mas o gap converge diferente; se for usar a malha PBE no híbrido, conferir 1–2 malhas com o híbrido).
-- Malhas repetidas para l diferentes são puladas. Exemplo Ag2SeO3 (|b| = 0,206 / 0,097 / 0,144 Å⁻¹): l=10 → 2×1×1, 15 → 3×1×2, 20 → 4×2×3, 25 → 5×2×4, 30 → 6×3×4, 35 → 7×3×5, 40 → 8×4×6.
-- **Critério (propor ao usuário):** ΔE ≤ 1 meV/átomo vs. a malha mais densa e gap estável (≤ 0,01 eV); com `--kconv-opt`, também ΔV ≤ 0,1 %. Escolher um ponto **no platô com folga**, nem o menor que passou nem o maior (mesma regra do VASP). Isolantes de gap largo saturam cedo (MgO PBE: 4×4×4 a 4,9 meV/át. de 6×6×6; 2×2×2 a 402 meV/át.).
-- **SP × FULLOPTG por malha:** a série com SP na geometria inicial (experimental) é o padrão barato; `--kconv-opt` repete o rito do VASP ao pé da letra (ISIF=3 em cada l) — com híbrido em 24+ átomos isso são dias de máquina; só se o usuário pedir.
+- Cada pasta é um **FULLOPTG** (célula + íons). O "repetir o ISIF=3 até o OSZICAR ter uma única linha `F=`" do VASP existe para reconstruir a base de ondas planas; no CRYSTAL a base segue os átomos e o equivalente embutido é o `FINALRUN 4` (default: reclassifica as integrais na geometria final e reotimiza até ficar estável).
+- Malhas que se repetem para `l` diferentes **não são recalculadas** (entrada idêntica → resultado idêntico); ficam em `kmesh_map.txt` e entram na tabela como `(= ll)`.
+- O job percorre as pastas em ordem, pula as convergidas, reinicia a otimização interrompida (`RESTART` + `OPTINFO.DAT` + `fort.9→fort.20`) e se ressubmete (margem 90 min, como no VASP). Reenviar o mesmo comando é seguro.
+- **Funcional da série = funcional de produção**: o rito é feito com cada funcional (decisão do usuário, 2026-11-17).
+- Exemplo Ag2SeO3 P2₁/c (|b| = 0,206 / 0,097 / 0,144 Å⁻¹): 05 → 1×1×1, 10 → 2×1×1, 15 → 3×1×2, 20 → 4×2×3, 25 → 5×2×4, 30 → 6×3×4, 35 → 7×3×5, 40 → 8×4×6, 45 → 9×4×6, 50 → 10×5×7.
+- **Critério (propor ao usuário):** ΔE ≤ 1 meV/átomo e ΔV ≤ 0,1 % vs. a malha mais densa, gap estável; escolher um `l` **no platô com folga**, nem o menor que passou nem o maior (mesma regra do VASP).
+- `--kconv-sp` (só single points na geometria inicial) existe para triagem barata, mas **não é o rito**.
 
 ## 2. Escolha da malha
 Apresentar a tabela (`kconv_<f>.csv`) e **perguntar**. Registrar no plano/cofre: malha, ISP, funcional, base, TOLINTEG, grade.
@@ -72,19 +77,27 @@ python3 $S/cry_input.py --geom runs/<f>_fullopt/fort.34 ... --func <F> --mode at
 
 ## 5. DOS e bandas (GGA e híbrido)
 
+Equivalência com o VASP: o SCF na geometria da etapa 4 faz o papel do estático que gera o `CHGCAR`/`WAVECAR` (aqui, `fort.9` = matriz de Fock/densidade convergida); **as bandas não são um single point**: são autovalores ao longo do **caminho de alta simetria** (= `ICHARG=11` com `KPOINTS` em line-mode), e a DOS é a rede densa (NEWK, = malha 3× do VASP).
+
 ```bash
 python3 $S/cry_input.py --geom runs/<f>_atomopt/fort.34 ... --func <F> --mode sp --k A B C --name <f>_sp
-sbatch $S/job_crystal.sh runs/<f>_sp                                   # gera fort.9
-python3 $S/cry_props.py --scf-out runs/<f>_sp/crystal.out --what both --path "..." | --path-frac "..."
-sbatch -t 02:00:00 $S/job_crystal.sh runs/<f>_sp props
+sbatch $S/job_crystal.sh runs/<f>_sp                                         # -> fort.9
+~/micromamba/envs/render_env/bin/python $S/cry_kpath.py runs/<f>_sp/crystal.out   # -> KPATH_CRYSTAL
+python3 $S/cry_props.py --scf-out runs/<f>_sp/crystal.out --what both --kpath-file runs/<f>_sp/KPATH_CRYSTAL
+sbatch -t 04:00:00 $S/job_crystal.sh --props runs/<f>_sp
 python3 $S/cry_parse.py bands runs/<f>_sp && python3 $S/cry_parse.py dos runs/<f>_sp
 ```
+
+**Caminho = o mesmo do VASP.** O `gen_kpath.py` do repo VASP usa `pymatgen HighSymmKpath` (convenção **Setyawan–Curtarolo 2010**) com 40 pontos por segmento, e grava `POSCAR_bands` padronizado (exigindo novo SCF se a célula mudar). O `cry_kpath.py` usa a mesma chamada, mas em vez de mudar a estrutura converte os pontos para a base recíproca primitiva **do próprio CRYSTAL**: acha a matriz unimodular S que leva a célula padrão do pymatgen na do CRYSTAL, aceita só se ela também leva os **átomos** (simetria do cristal, não só da rede) e usa f_cry = f_std·S⁻ᵀ. Pontos irracionais (monoclínico: η, ν dependem de β) viram frações com ISS comum (Ag2SeO3: ISS 1800, erro 5×10⁻⁵ — aceito pelo CRYSTAL, testado). `NSUB` = 40 × nº de segmentos (o CRYSTAL distribui com passo constante, então não é exatamente 40 por segmento). O aviso do pymatgen "input structure does not match the expected standard primitive" é esperado e inofensivo aqui (a conversão cuida disso). Saídas: `KPATH_CRYSTAL` (ISS, DIV, segmentos com rótulos), `bands_ticks.csv` para o gráfico.
+
+Exemplo verificado (Ag2SeO3 B3LYP k333, `fort.9` do job 876, 2026-11-17): caminho Γ–Y–H–C–E–M1–A–X–H1|M–D–Z|Y–D, 442 k, 20 s com 4 threads; VBM no segmento M1–A, CBM em Γ, gap indireto 3,845 eV no caminho contra 3,9135 eV na rede 3×3×3 do SCF — **o VBM verdadeiro fica fora da rede SCF** (a banda de valência sobe 0,07 eV acima do E_F da malha). Por isso relatar sempre o gap do caminho e o da rede.
+
 `PROPS` gerado (exemplo MgO, verificado):
 ```
 BAND
 band structure
-5 8 400 1 29 1 0          # NLINE ISS NSUB INZB IFNB IPLO(1=fort.25+BAND.DAT) LPR66
-0 0 0 4 0 4               # segmentos em unidades de 1/ISS dos vetores recíprocos (ISS=0 → rótulos "G X")
+10 8 400 1 29 1 0         # NLINE ISS NSUB INZB IFNB IPLO(1=fort.25+BAND.DAT) LPR66
+0 0 0 -4 0 -4             # segmentos em unidades de 1/ISS dos vetores recíprocos primitivos
 ...
 NEWK
 12 24                     # IS ISP (3× a malha SCF; ISP = 2·IS); anisotrópica: "0 ISP" + "IS1 IS2 IS3"
@@ -98,10 +111,10 @@ END
 - **Ordem BAND → NEWK → DOSS** (p.310, p.320, p.346): BAND depois do NEWK destrói os autovetores (SABF).
 - Janela de bandas: `--bands-below/--bands-above` em torno do HOMO (= elétrons/2 em camada fechada). Ela também define a janela de energia da DOS: incluir caroço dilui os 6001 pontos (o `cry_parse.py dos` avisa se o passo > 20 meV).
 - NEWK com IS menor que o do SCF dá imprecisão na transformada de Fourier (p.346); nunca usar < malha SCF.
-- **Caminho no BZ:** rótulos aceitos só os das Tabelas 14.1/14.2 (índice B). P monoclínico aparece com A, B, C, D, E, Y, Z (conferir a tabela, o texto do PDF embaralha as coordenadas); FCC só X, L, W (verificado: K dá erro). Fora disso, `--path-frac` com frações dos vetores **recíprocos primitivos** (o script calcula ISS = mmc dos denominadores).
-- Saídas: `fort.25` (blocos `-%-` BAND/DOSS com E_F), `BAND.DAT`, `DOSS.DAT` (E−E_F em Ha; projeções e total por último). `cry_parse.py` converte para eV (`bands.csv`: E−E_F; `DOS_raw_data.csv`: estados/eV/célula).
-- Gap: SCF imprime `DIRECT/INDIRECT ENERGY BAND GAP` a cada ciclo — **vale a última ocorrência** (rede SCF). O `bands` dá VBM/CBM e gap ao longo do caminho; relatar os dois e o k de cada extremo.
-- **HF/híbrido:** autovalores HF puros não são energias de excitação (p.309-310); híbridos (HSE06/PBE0/B3LYP) são a escolha usual para gap. Para comparar com VASP-HSE06 usar HSE06 aqui (mesmo ω = 0,11 bohr⁻¹, 25 %).
+- Alternativas ao `--kpath-file`: `--path "G X;X W"` (só rótulos das Tabelas 14.1/14.2; FCC aceita X, L, W e **não** K) ou `--path-frac`.
+- Saídas: `fort.25` (blocos `-%-` BAND/DOSS com E_F), `BAND.DAT`, `DOSS.DAT` (E−E_F em Ha; projeções e total por último). `cry_parse.py` converte para eV (`bands.csv`: E−E_F; `DOS_raw_data.csv`: estados/eV/célula) e diz onde estão VBM/CBM (rótulo/segmento).
+- Gap da rede SCF: `DIRECT/INDIRECT ENERGY BAND GAP` é impresso a cada ciclo — vale a **última** ocorrência.
+- **GGA e híbrido:** rito completo com cada funcional (geometria própria; decisão do usuário 2026-11-17). Para comparar com VASP-HSE06 usar HSE06 aqui (ω = 0,11 bohr⁻¹, 25 %). Autovalores HF puros não são energias de excitação (p.309-310).
 
 ## 6. Spin, magnetismo, convergência difícil
 

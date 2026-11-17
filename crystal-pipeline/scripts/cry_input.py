@@ -2,9 +2,9 @@
 """Build CRYSTAL23 SCF/optimization inputs (crystal "INPUT" deck, d12) for the pipeline steps.
 
 Steps covered (see SKILL.md):
-  kconv    one single-point per k-mesh (run dirs <name>[_lNN]_k<a>x<b>x<c>)     -> step 1
-           meshes from --kseries or from VASP-Auto lengths --klengths (same rule as KPOINTS "Auto");
-           --kconv-opt runs FULLOPTG per mesh instead of a single point (VASP-rito parity, costly)
+  kconv    VASP-rito pattern: <root>/<name>/<ll>/ for l = 05..50 (step 5, KPOINTS "Auto" rule), each a
+           FULLOPTG (cell + ions, = ISIF=3 per l); repeated meshes are listed in kmesh_map.txt, not rerun.
+           --kseries "a b c;..." for explicit meshes; --kconv-sp = single points (screening only)
   fullopt  OPTGEOM + FULLOPTG  (cell + ions; VASP ISIF=3 analogue)              -> step 2
   atomopt  OPTGEOM + ATOMONLY  (ions only, fixed cell; VASP ISIF=2 analogue)    -> step 3
   sp       single point (writes fort.9 for properties: DOS/bands)               -> step 4
@@ -20,7 +20,7 @@ Basis: --basis-dir DIR with one file per element "<El>_<tag>.basis" (first line 
 
 Usage:
   cry_input.py --geom ag2seo3.crygeo --basis-dir basis --basis-tag pob-TZVP-rev2 \
-      --func HSE06 --mode kconv --kseries "2 1 2;3 2 2;4 2 3;5 3 4" --name hse_kconv
+      --func HSE06 --mode kconv --name hse_stress_kconv          # -> runs/hse_stress_kconv/05 ... /50
   cry_input.py --geom runs/hse_fullopt/fort.34 --basisset POB-TZVP-REV2 --func PBE \
       --mode atomopt --k 5 3 4 --name pbe_atomopt
 """
@@ -174,7 +174,9 @@ def basis_block(zs, args):
 
 def opt_block(args):
     kind = {"fullopt": "FULLOPTG", "atomopt": "ATOMONLY"}[args.mode]
-    b = ["OPTGEOM", kind, "TOLDEG", str(args.toldeg), "TOLDEX", str(args.toldex),
+    # ONELOG: keep the whole optimization in crystal.out (default routes it to SCFOUT.LOG after the 1st
+    # cycle, manual 7.2.6 -> crystal.out stops growing and the stall watchdog could kill a healthy job)
+    b = ["OPTGEOM", kind, "ONELOG", "TOLDEG", str(args.toldeg), "TOLDEX", str(args.toldex),
          "TOLDEE", str(args.opt_toldee), "MAXCYCLE", str(args.opt_maxcycle)]
     if args.extpress is not None and args.mode == "fullopt":
         b += ["EXTPRESS", str(args.extpress)]
@@ -255,9 +257,10 @@ def main():
     p.add_argument("--basis-tag", help="file tag: <El>_<tag>.basis (default: unique <El>_*.basis)")
     p.add_argument("--k", type=int, nargs=3, help="Monkhorst-Pack shrinking factors IS1 IS2 IS3")
     p.add_argument("--kseries", help='kconv only: "a b c;a b c;..."')
-    p.add_argument("--klengths", help='kconv only: VASP-Auto lengths "10 15 20 ..." (A): N_i = max(1, int(l*|b_i| + 0.5))')
+    p.add_argument("--klengths", default="5 10 15 20 25 30 35 40 45 50",
+                   help='kconv: VASP-Auto lengths (A), N_i = max(1, int(l*|b_i| + 0.5)); default 05..50 step 5 as in the VASP rito')
     p.add_argument("--cell-from", help="crystal.out / fort.34 / POSCAR giving the primitive vectors for --klengths")
-    p.add_argument("--kconv-opt", action="store_true", help="kconv: FULLOPTG in each mesh (VASP-rito parity; costly)")
+    p.add_argument("--kconv-sp", action="store_true", help="kconv: single points instead of FULLOPTG (cheap screening, NOT the rito)")
     p.add_argument("--isp", type=int, help="Gilat net (default 2*IS1)")
     p.add_argument("--grid", default="XXLGRID", choices=["LGRID", "XLGRID", "XXLGRID", "XXXLGRID"])
     p.add_argument("--tolinteg", default="8 8 8 8 16")
@@ -281,23 +284,29 @@ def main():
     a = p.parse_args()
 
     if a.mode == "kconv":
-        if a.klengths:
+        # VASP-rito pattern (bash_stress_coaraci.sh): one folder per length l = 05..50 (step 5), each one a
+        # full cell+ion optimization (ISIF=3 there, FULLOPTG here). <root>/<name>/<ll>/INPUT
+        parent = Path(a.root) / a.name
+        meshes, names, kmap = [], [], []
+        if a.kseries:
+            meshes = [tuple(int(x) for x in s.split()) for s in a.kseries.split(";") if s.strip()]
+            names = [str(Path(a.name) / f"k{m[0]}x{m[1]}x{m[2]}") for m in meshes]
+        else:
             bl = recip_lengths(primitive_vectors(a))
-            meshes, names = [], []
+            print("|b_i| (1/A, no 2pi) =", " ".join(f"{b:.4f}" for b in bl), file=sys.stderr)
             for l in a.klengths.split():
                 m = tuple(max(1, int(float(l) * b + 0.5)) for b in bl)
-                if m in meshes:
-                    print(f"l={l}: mesh {m} repeats a shorter l, skipped", file=sys.stderr)
+                ll = f"{int(float(l)):02d}"
+                if m in meshes:  # identical input -> identical result: not recomputed, recorded in kmesh_map.txt
+                    kmap.append(f"{ll} {m[0]}x{m[1]}x{m[2]} same_as {names[meshes.index(m)].split('/')[-1]}")
                     continue
                 meshes.append(m)
-                names.append(f"{a.name}_l{int(float(l)):02d}_k{m[0]}x{m[1]}x{m[2]}")
-            print("|b_i| (1/A, no 2pi) =", " ".join(f"{b:.4f}" for b in bl), file=sys.stderr)
-        elif a.kseries:
-            meshes = [tuple(int(x) for x in s.split()) for s in a.kseries.split(";") if s.strip()]
-            names = [f"{a.name}_k{m[0]}x{m[1]}x{m[2]}" for m in meshes]
-        else:
-            p.error("--mode kconv needs --kseries or --klengths")
-        a.mode = "fullopt" if a.kconv_opt else "sp"
+                names.append(str(Path(a.name) / ll))
+                kmap.append(f"{ll} {m[0]}x{m[1]}x{m[2]} run {ll}")
+            parent.mkdir(parents=True, exist_ok=True)
+            (parent / "kmesh_map.txt").write_text("# l mesh status folder\n" + "\n".join(kmap) + "\n")
+            print("\n".join(kmap), file=sys.stderr)
+        a.mode = "sp" if a.kconv_sp else "fullopt"
         mode_title = a.mode
     else:
         if not a.k:

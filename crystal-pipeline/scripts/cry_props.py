@@ -7,9 +7,11 @@ SCF shrinking factors and spin. Writes <rundir>/PROPS (run with: properties < PR
 Order enforced (manual p.310/320/346): BAND -> NEWK -> DOSS (BAND after NEWK destroys NEWK data).
 Defaults follow the user's VASP rules: DOS k-net = 3x the SCF net per axis, NPT = 6001 (NEDOS=6001).
 
-Usage:
-  cry_props.py --scf-out runs/hse_sp/crystal.out --what both --path "G Z;Z D;D B;B G;G Y" \
-      [--path-frac "0 0 0 0 0 1/2;..."] [--newk-mult 3] [--bands-below 40 --bands-above 40]
+Usage (default route = VASP convention, Setyawan-Curtarolo path from cry_kpath.py):
+  render_env/bin/python cry_kpath.py runs/hse_sp/crystal.out        # -> runs/hse_sp/KPATH_CRYSTAL
+  cry_props.py --scf-out runs/hse_sp/crystal.out --what both --kpath-file runs/hse_sp/KPATH_CRYSTAL
+  alternatives: --path "G X;X W" (labels of manual Tables 14.1/14.2) or --path-frac "0 0 0 1/2 0 1/2;..."
+  options: [--newk-mult 3] [--bands-below 40 --bands-above 40] [--nsub N]
 Band labels with ISS=0 must exist in manual Tables 14.1/14.2 for the Bravais lattice
 (grep -n "Table 14.1" references/CRYSTAL23_Manual.md); otherwise use --path-frac.
 """
@@ -39,6 +41,21 @@ def parse_scf(out):
 
 
 def band_lines(args):
+    if args.kpath_file:  # written by cry_kpath.py (Setyawan-Curtarolo path, CRYSTAL primitive basis)
+        iss, div, rows = None, None, []
+        for l in Path(args.kpath_file).read_text().splitlines():
+            if l.startswith("#") or not l.strip():
+                continue
+            t = l.split()
+            if t[0] == "ISS":
+                iss = int(t[1])
+            elif t[0] == "DIV":
+                div = int(t[1])
+            else:
+                rows.append(" ".join(t[:6]))
+        if args.nsub is None:
+            args.nsub = div * len(rows)
+        return iss, rows
     if args.path_frac:
         segs = [[Fraction(x) for x in s.split()] for s in args.path_frac.split(";") if s.strip()]
         if any(len(s) != 6 for s in segs):
@@ -57,9 +74,10 @@ def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--scf-out", required=True)
     p.add_argument("--what", choices=["dos", "bands", "both"], default="both")
+    p.add_argument("--kpath-file", help="KPATH_CRYSTAL from cry_kpath.py (DEFAULT route: same path convention as VASP)")
     p.add_argument("--path", help='labels, ISS=0: "G X;X W"')
     p.add_argument("--path-frac", help='"x1 y1 z1 x2 y2 z2;..." fractions of b1,b2,b3 (e.g. 1/2)')
-    p.add_argument("--nsub", type=int, default=400, help="total k points along the path")
+    p.add_argument("--nsub", type=int, help="total k points along the path (default: DIV x segments, or 400)")
     p.add_argument("--newk-mult", type=int, default=3, help="DOS net = mult x SCF net (user rule: 3)")
     p.add_argument("--newk", type=int, nargs=3, help="explicit DOS net (overrides --newk-mult)")
     p.add_argument("--npt", type=int, default=6001, help="DOS energy points (user rule: 6001)")
@@ -75,9 +93,10 @@ def main():
     inzb, ifnb = max(1, homo - a.bands_below), min(nao, homo + a.bands_above)
     d3 = []
     if a.what in ("bands", "both"):
-        if not (a.path or a.path_frac):
-            p.error("bands need --path or --path-frac")
+        if not (a.kpath_file or a.path or a.path_frac):
+            p.error("bands need --kpath-file (default route), --path or --path-frac")
         iss, rows = band_lines(a)
+        a.nsub = a.nsub or 400
         d3 += ["BAND", "band structure", f"{len(rows)} {iss} {a.nsub} {inzb} {ifnb} 1 0"] + rows
     if a.what in ("dos", "both"):
         kn = a.newk or [a.newk_mult * x for x in kscf]

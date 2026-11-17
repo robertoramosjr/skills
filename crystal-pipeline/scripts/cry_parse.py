@@ -3,14 +3,15 @@
 
 Subcommands:
   check  OUT...           termination, SCF/opt convergence, energy, gap, wall time  (exit 1 if any fails)
-  kconv  DIR...           k-mesh convergence table (dE meV/atom vs the densest mesh, gap) -> CSV
+  kconv  PARENT|DIR...    k-convergence table as the VASP extract_stress_data.py (l, mesh, cell, E, folder)
+                          + dE meV/atom and dV % vs the densest mesh, gap -> PARENT/dados_convergencia_final.csv
   opt    OUT              optimization summary: converged?, points, final cell and volume, energy
   dos    DIR              DOSS.DAT (+fort.25 for E_F) -> DOS_raw_data.csv (eV, states/eV/cell)
   bands  DIR              fort.25 BAND blocks -> bands.csv (k-distance, E-E_F in eV) + VBM/CBM/gap
 
 Usage:
   cry_parse.py check runs/*/crystal.out
-  cry_parse.py kconv runs/hse_kconv_k* --csv kconv.csv
+  cry_parse.py kconv runs/hse_stress_kconv
   cry_parse.py opt runs/hse_fullopt/crystal.out
   cry_parse.py dos runs/hse_sp ; cry_parse.py bands runs/hse_sp
 """
@@ -69,42 +70,68 @@ def cmd_check(a):
     sys.exit(1 if bad else 0)
 
 
+def cell_params(t):
+    """Last printed primitive cell (a b c alpha beta gamma, V) from a crystal.out text."""
+    m = list(re.finditer(r"PRIMITIVE CELL - CENTRING CODE.*?VOLUME=\s*([\d.]+).*?GAMMA\s*\n\s*([-\d.\s]+?)\n", t, re.S))
+    if not m:
+        return None, None
+    return [float(x) for x in m[-1].group(2).split()[:6]], float(m[-1].group(1))
+
+
 def cmd_kconv(a):
+    """VASP-style table (extract_stress_data.py): Kdensity, Kmesh, lattice, Energy, folder (+dE, dV, gap)."""
+    dirs = []
+    for d in map(Path, a.dirs):
+        subs = sorted(x for x in d.iterdir() if (x / "INPUT").exists()) if d.is_dir() and not (d / "INPUT").exists() else []
+        dirs += subs or [d]
+    parent = Path(a.dirs[0]) if len(a.dirs) == 1 and Path(a.dirs[0]).is_dir() and not (Path(a.dirs[0]) / "INPUT").exists() else None
     rows = []
-    for d in a.dirs:
-        o = Path(d) / "crystal.out" if Path(d).is_dir() else Path(d)
+    for d in dirs:
+        o = d / "crystal.out" if d.is_dir() else d
         if not o.exists():
             print(f"skip {d}: no crystal.out", file=sys.stderr)
             continue
         s = summary(o)
-        if not (s["terminated"] and s["scf_ok"]):
-            print(f"skip {d}: not finished/converged", file=sys.stderr)
+        done = s["terminated"] and s["scf_ok"] and (s["opt_ok"] or not s["is_opt"])
+        if not done:
+            print(f"skip {d}: not finished/converged (term={s['terminated']} scf={s['scf_ok']} opt={s['opt_ok']})", file=sys.stderr)
             continue
+        cell, vol = cell_params(txt(o))
         kk = [int(x) for x in s["kmesh"].split("x")]
-        rows.append({"dir": str(d), "kmesh": s["kmesh"], "nk_ibz": s["nk_ibz"], "nat": s["nat"],
-                     "E_Ha": s["energy_ha"], "gap_eV": s["gap_ev"], "wall_s": s["wall_s"], "V_A3": s["volume_A3"],
-                     "opt": s["is_opt"], "_n": kk[0] * kk[1] * kk[2]})
-        if s["is_opt"] and not s["opt_ok"]:
-            print(f"WARNING {d}: optimization NOT converged", file=sys.stderr)
+        rows.append({"Kdensity": d.name, "Kmesh": s["kmesh"], "nk_ibz": s["nk_ibz"], "nat": s["nat"],
+                     "a": cell[0], "b": cell[1], "c": cell[2], "alpha": cell[3], "beta": cell[4], "gamma": cell[5],
+                     "V_A3": vol, "Energy_Ha": s["energy_ha"], "gap_eV": s["gap_ev"], "opt": s["is_opt"],
+                     "wall_s": s["wall_s"], "Pasta": str(d), "_n": kk[0] * kk[1] * kk[2]})
+    if parent and (parent / "kmesh_map.txt").exists():  # repeated meshes: same result, listed for completeness
+        byname = {r["Kdensity"]: r for r in rows}
+        for l in (parent / "kmesh_map.txt").read_text().splitlines():
+            t = l.split()
+            if len(t) == 4 and t[2] == "same_as" and t[3] in byname:
+                rows.append(dict(byname[t[3]], Kdensity=t[0], Pasta=f"(= {t[3]})"))
     if not rows:
         sys.exit("no finished runs")
-    rows.sort(key=lambda r: r["_n"])
-    ref = rows[-1]
+    rows.sort(key=lambda r: (r["_n"], r["Kdensity"]))
+    ref = max(rows, key=lambda r: r["_n"])
     for r in rows:
-        r["dE_meV_atom_vs_densest"] = (r["E_Ha"] - ref["E_Ha"]) * HA_EV * 1000 / r["nat"]
-        r["dV_pct_vs_densest"] = (100 * (r["V_A3"] - ref["V_A3"]) / ref["V_A3"]) if (r["opt"] and ref["V_A3"]) else None
-    print(f"{'kmesh':>9} {'nkIBZ':>5} {'E (Ha)':>20} {'dE meV/at':>10} {'dV %':>7} {'gap eV':>7} {'wall s':>8}  dir")
+        r["dE_meV_atom_vs_densest"] = (r["Energy_Ha"] - ref["Energy_Ha"]) * HA_EV * 1000 / r["nat"]
+        r["dV_pct_vs_densest"] = 100 * (r["V_A3"] - ref["V_A3"]) / ref["V_A3"]
+    print(f"{'l':>3} {'kmesh':>9} {'nkIBZ':>5} {'a':>9} {'b':>9} {'c':>9} {'V A3':>10} {'E (Ha)':>19} "
+          f"{'dE meV/at':>9} {'dV %':>7} {'gap eV':>7}  folder")
     for r in rows:
-        dv = f"{r['dV_pct_vs_densest']:.3f}" if r["dV_pct_vs_densest"] is not None else "-"
-        print(f"{r['kmesh']:>9} {r['nk_ibz']:>5} {r['E_Ha']:>20.10f} {r['dE_meV_atom_vs_densest']:>10.3f} {dv:>7} "
-              f"{r['gap_eV'] if r['gap_eV'] is not None else '-':>7} {r['wall_s'] or '-':>8}  {r['dir']}")
-    if a.csv:
-        keys = ["kmesh", "nk_ibz", "nat", "E_Ha", "dE_meV_atom_vs_densest", "V_A3", "dV_pct_vs_densest", "gap_eV", "wall_s", "dir"]
-        with open(a.csv, "w", newline="") as f:
+        print(f"{r['Kdensity']:>3} {r['Kmesh']:>9} {r['nk_ibz']:>5} {r['a']:>9.5f} {r['b']:>9.5f} {r['c']:>9.5f} "
+              f"{r['V_A3']:>10.4f} {r['Energy_Ha']:>19.10f} {r['dE_meV_atom_vs_densest']:>9.3f} "
+              f"{r['dV_pct_vs_densest']:>7.3f} {r['gap_eV'] if r['gap_eV'] is not None else '-':>7}  {r['Pasta']}")
+    if not all(r["opt"] for r in rows):
+        print("note: single-point rows (no optimization): dV is meaningless there", file=sys.stderr)
+    out = a.csv or (str(parent / "dados_convergencia_final.csv") if parent else None)
+    if out:
+        keys = ["Kdensity", "Kmesh", "nk_ibz", "a", "b", "c", "alpha", "beta", "gamma", "V_A3", "Energy_Ha",
+                "dE_meV_atom_vs_densest", "dV_pct_vs_densest", "gap_eV", "wall_s", "Pasta"]
+        with open(out, "w", newline="") as f:
             w = csv.DictWriter(f, fieldnames=keys, extrasaction="ignore")
             w.writeheader()
             w.writerows(rows)
-        print("written", a.csv)
+        print("written", out)
 
 
 def cmd_opt(a):
@@ -177,26 +204,57 @@ def cmd_bands(a):
     if not segs:
         sys.exit("no BAND blocks in fort.25")
     nb, ef = segs[0][0], segs[0][3]
-    kd, eig, x = [], [], 0.0
-    for nb_, nk, dk, _, vals in segs:
+    kd, eig, x, segof = [], [], 0.0, []
+    for si, (nb_, nk, dk, _, vals) in enumerate(segs):
         for j in range(nk):
             kd.append(x + j * dk)
             eig.append(vals[j * nb_:(j + 1) * nb_])
+            segof.append((si, j, nk))
         x += (nk - 1) * dk
-    occ = [b for b in range(nb) if max(e[b] for e in eig) <= ef + 1e-5]
-    vb, cb = (max(occ), max(occ) + 1) if occ else (None, None)
+    kpf = d / "KPATH_CRYSTAL"
+    seglab = [l.split()[6:8] for l in kpf.read_text().splitlines() if l.strip() and l[0] not in "#ID"] \
+        if kpf.exists() else []
+
+    def where(k):
+        si, j, nk = segof[k]
+        if len(seglab) != len(segs):
+            return f"segment {si + 1}, point {j + 1}/{nk}"
+        a, b = seglab[si]
+        return a if j == 0 else b if j == nk - 1 else f"{a}-{b} ({j}/{nk - 1})"
+    # conduction = first band lying entirely above E_F. NOT "occupied if max <= E_F": E_F comes from the SCF
+    # net, and along the path the valence band can rise above it (Ag2SeO3 B3LYP k333: +0.07 eV).
+    cbl = [b for b in range(nb) if min(e[b] for e in eig) > ef + 1e-4]
+    cb = cbl[0] if cbl else None
+    vb = cb - 1 if cb else None
     with open(d / "bands.csv", "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["k_dist_bohr-1"] + [f"band{b + 1}" for b in range(nb)])
         for k, e in zip(kd, eig):
             w.writerow([f"{k:.6f}"] + [f"{(v - ef) * HA_EV:.5f}" for v in e])
+    if kpf.exists():  # tick positions/labels for plotting (segment starts + final end)
+        labs = [l.split()[6:8] for l in kpf.read_text().splitlines() if l.strip() and l[0] not in "#ID"]
+        if len(labs) == len(segs):
+            ticks, x = [], 0.0
+            for (nb_, nk, dk, _, _), (la, lb) in zip(segs, labs):
+                if ticks and ticks[-1][1] != la:
+                    ticks[-1] = (ticks[-1][0], f"{ticks[-1][1]}|{la}")
+                elif not ticks:
+                    ticks.append((x, la))
+                x += (nk - 1) * dk
+                ticks.append((x, lb))
+            with open(d / "bands_ticks.csv", "w", newline="") as f:
+                w = csv.writer(f)
+                w.writerow(["k_dist_bohr-1", "label"])
+                w.writerows([(f"{t:.6f}", l) for t, l in ticks])
     msg = f"written {d / 'bands.csv'}: {len(segs)} segments, {len(kd)} k, {nb} bands, E_F={ef:.6f} Ha"
-    if vb is not None and cb < nb:
+    if vb is not None and vb >= 0:
         vbm = max(range(len(eig)), key=lambda k: eig[k][vb])
         cbm = min(range(len(eig)), key=lambda k: eig[k][cb])
         gap = (eig[cbm][cb] - eig[vbm][vb]) * HA_EV
-        msg += (f"\n  VBM k#{vbm} ({kd[vbm]:.4f}), CBM k#{cbm} ({kd[cbm]:.4f}), gap along path = {gap:.4f} eV, "
-                f"{'direct' if vbm == cbm else 'indirect'} (path only; compare with the SCF-net gap)")
+        direct = abs(kd[vbm] - kd[cbm]) < 1e-9
+        msg += (f"\n  VBM at {where(vbm)} (k={kd[vbm]:.4f}), CBM at {where(cbm)} (k={kd[cbm]:.4f}), "
+                f"gap along path = {gap:.4f} eV, {'direct' if direct else 'indirect'} "
+                "(path only; compare with the SCF-net gap)")
     print(msg)
 
 

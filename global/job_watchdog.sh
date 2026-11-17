@@ -19,6 +19,7 @@
 #   WATCHDOG_LOG       arquivo de log (padrão ./watchdog.log).
 #   WATCHDOG_DIR       diretório observado (padrão $PWD no momento da chamada).
 # Não cobre deadlock em que o programa continua escrevendo; só inatividade de saída.
+# Stdin é preservado: `run_watched crystalOMP < INPUT` funciona (corrigido 2026-11-17; antes chegava /dev/null).
 
 run_watched() {
   local idle=${WATCHDOG_IDLE_SEC:-2700} grace=${WATCHDOG_GRACE_SEC:-900}
@@ -26,7 +27,10 @@ run_watched() {
   local dir=${WATCHDOG_DIR:-$PWD} log=${WATCHDOG_LOG:-$PWD/watchdog.log}
   local pid pgid last now t0 rc
   t0=$(date +%s)
-  setsid "$@" &
+  # "<&0": an explicit redirection keeps the caller's stdin. Without it, bash (no job control) gives a
+  # background command /dev/null as stdin and `run_watched prog < INPUT` reads nothing
+  # (CRYSTAL: "END OF DATA IN INPUT DECK", 2026-11-17).
+  setsid "$@" <&0 &
   pid=$!
   while kill -0 "$pid" 2>/dev/null; do
     sleep "$poll"
