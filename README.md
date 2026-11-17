@@ -7,6 +7,7 @@ Skills do Claude Code do Roberto (Turbomole, VASP, CP2K). Cada pasta é uma skil
 | `turbomole-pipeline` | começar/retomar/depurar estudo em TURBOMOLE (DFT, TD-DFT, IR, DOS, funil de confôrmeros, pKa/COSMO) |
 | `vasp-pipeline` | cálculos VASP PAW-PBE (convergência 2×/1.125×ENMAX, slabs, defeitos, datasets ML) |
 | `cp2k-pipeline` | cálculos CP2K (CUTOFF/REL_CUTOFF 2D, k-mesh, CELL_OPT, bandas, PDOS, slabs, híbridos) |
+| `pipeline-crystal` | cálculos CRYSTAL23 (rito: k-points → FULLOPTG ≈ ISIF=3 → ATOMONLY ≈ ISIF=2 → DOS/bandas GGA e híbrido via properties) |
 | `cofre-sync` | atualizar o cofre ao fim de sessão, garantir pendências, aposentar projetos concluídos |
 | `research-paper-writing` | redigir/revisar Abstract, Intro, Method, Experiments; fluxo de parágrafos; auto-revisão adversarial (terceiros: Master-cai/Research-Paper-Writing-Skills @77e7c2c, MIT) |
 | `academic-figure-skill` | figuras científicas para Nature/Cell/Science (matplotlib/R, specs de revista, QA) (terceiros: TingxiYu/academic-figure-skill @1df9940; assets ~137 MB) |
@@ -14,6 +15,9 @@ Skills do Claude Code do Roberto (Turbomole, VASP, CP2K). Cada pasta é uma skil
 
 ## Manual do TURBOMOLE
 ➡️ `turbomole-pipeline/references/Turbomole_Manual_8-0.md` (manual 8.0 em Markdown, 1,6 MB, versionado aqui para vir sempre com `git pull`). **Deve ser consultado (via `grep -n`) para buscar novos métodos e resolver problemas em TURBOMOLE antes de adivinhar.**
+
+## Manual do CRYSTAL23
+➡️ `pipeline-crystal/references/CRYSTAL23_Manual.md` (User's Manual de 31/10/2023 em texto, 2 MB, com índice de seções/keywords/páginas → linha no topo). **Consultar via `grep -n` antes de adivinhar keyword ou erro do CRYSTAL.**
 
 ## Instalação (por máquina)
 ```bash
