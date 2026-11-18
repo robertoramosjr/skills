@@ -81,7 +81,10 @@ is_done() {  # $1 = dir
 }
 resubmit() {
   echo "[resubmit] $(remaining_min) min left (margin ${RESUBMIT_MARGIN_MIN}): sbatch again"
-  cd "$SUBMIT_DIR"; sbatch --export=ALL,LAYOUT=$LAYOUT "$SELF" $([ $PROPS = 1 ] && echo --props) "${ARGS[@]}"; exit 0
+  # keep the partition and resources of the running job (CLI overrides of the #SBATCH header are not inherited)
+  cd "$SUBMIT_DIR"; sbatch -p "${SLURM_JOB_PARTITION:-par48a}" --ntasks="${SLURM_NTASKS:-24}" \
+    --cpus-per-task="${SLURM_CPUS_PER_TASK:-2}" --mem="${SLURM_MEM_PER_NODE:-43200}M" \
+    --export=ALL,LAYOUT=$LAYOUT "$SELF" $([ $PROPS = 1 ] && echo --props) "${ARGS[@]}"; exit 0
 }
 
 SUBMIT_DIR=${SLURM_SUBMIT_DIR:-$PWD}

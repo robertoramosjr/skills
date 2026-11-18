@@ -70,7 +70,16 @@ def read_any(path):
     return s.lattice.matrix, s.frac_coords, [site.specie.Z for site in s]
 
 
-def crygeo_lines(sg, lat_std, pos, zs):
+# Space groups with two origin settings in the International Tables (CRYSTAL default IFSO=0 = 2nd setting).
+# spglib standard positions are in the 1st setting, so these need IFSO=1 (manual p.19, note 8). Tested on
+# TiO2 anatase, I4_1/amd (141): IFSO=0 gave 12 atoms per primitive cell and density 7.7 g/cm3.
+TWO_ORIGIN_SETTINGS = {48, 50, 59, 68, 70, 85, 86, 88, 125, 126, 129, 130, 133, 134, 137, 138,
+                       141, 142, 201, 203, 222, 224, 227, 228}
+
+
+def crygeo_lines(sg, lat_std, pos, zs, ifso=None):
+    if ifso is None:
+        ifso = 1 if sg in TWO_ORIGIN_SETTINGS else 0
     a, b, c = np.linalg.norm(lat_std, axis=1)
     ang = lambda u, v: np.degrees(np.arccos(np.dot(u, v) / np.linalg.norm(u) / np.linalg.norm(v)))
     al, be, ga = ang(lat_std[1], lat_std[2]), ang(lat_std[0], lat_std[2]), ang(lat_std[0], lat_std[1])
@@ -84,7 +93,7 @@ def crygeo_lines(sg, lat_std, pos, zs):
         par = [a, c]
     else:
         par = [a]
-    out = ["CRYSTAL", "0 0 0", str(sg), " ".join(f"{x:.8f}" for x in par), str(len(zs))]
+    out = ["CRYSTAL", f"0 0 {ifso}", str(sg), " ".join(f"{x:.8f}" for x in par), str(len(zs))]
     out += [f"{z} {x:.12f} {y:.12f} {w:.12f}" for z, (x, y, w) in zip(zs, pos % 1.0)]
     return out
 

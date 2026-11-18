@@ -50,3 +50,9 @@ Ag2SeO3 B3LYP k333: E = −11683,685146661 Ha, gap indireto 3,9135 eV (última l
 - **Gap no caminho ≠ gap da rede SCF.** Ag2SeO3 B3LYP k333: rede 3,9135 eV, caminho Setyawan–Curtarolo 3,845 eV (VBM em M1–A, fora da malha 3×3×3). A banda de valência passa 0,07 eV acima do E_F impresso (que vem da rede SCF). Um parser que decide "ocupada se max(E) ≤ E_F" erra (deu gap −0,52 eV na 1ª versão); o certo é "banda de condução = primeira inteiramente acima de E_F".
 - `fort.25` com ISS grande imprime as coordenadas do segmento em I5 (não 6I3): pular o 3º registro por linha, não por largura.
 - ISS = 1800 é aceito pelo `properties` (pontos irracionais do monoclínico aproximados com erro 5×10⁻⁵).
+
+## Origem (IFSO) em grupos com dois settings — verificado 2026-11-18 (TiO2 anatase, I4₁/amd 141)
+- Sintoma: `TESTGEOM` com `IFSO=0` (default = **2º setting** da ITA, manual p.19 nota 8) dá "CENTRING CODE 6/0", 12 átomos na célula primitiva de 68,78 Å³ e densidade 7,715 g/cm³ (2×; Ti–Ti 1,89 Å). Verify em volume/contagem falha com `MISMATCH`.
+- Causa: as posições padronizadas do spglib estão no **1º setting**; sem IFSO o CRYSTAL as lê no 2º.
+- Correção: `IFSO=1` no cabeçalho (`0 0 1`). Resultado: 6 átomos na primitiva, 3,857 g/cm³, distâncias idênticas ao POSCAR (Δ 1e-9 Å). Aplicado no `cry_symm.py` (`TWO_ORIGIN_SETTINGS`, parâmetro `ifso`); o `--verify` deve dar `OK` antes de qualquer job.
+- Diagnóstico barato: célula P1 da primitiva (6 átomos) e convencional (12) devem dar 3,857 g/cm³; se der outro valor, o problema é o grupo/origem.
