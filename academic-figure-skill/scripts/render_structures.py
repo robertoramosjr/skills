@@ -29,14 +29,15 @@ STYLE = {
     "bond_radius": 0.10,
     "bond_factor": 1.2,
     "background": "white",
-    # Sharp white highlight like the VESTA reference: phong spot + weak broad specular.
+    # Polished billiard-ball finish (user, 2026-11-18); single source of truth: ~/skills/vasp_plot/scripts/povray_style.py.
+    # Needs a NON-shadowless key light (shadowless lights give no specular); no `reflection` (grainy).
     "finish": {
-        "ambient": 0.25,
-        "diffuse": 0.75,
-        "specular": 0.3,
-        "roughness": 0.01,
-        "phong": 0.9,
-        "phong_size": 90,
+        "ambient": 0.16,
+        "diffuse": 0.72,
+        "specular": 1.0,
+        "roughness": 0.0015,
+        "phong": 1.0,
+        "phong_size": 70,
     },
     "margin": 0.10,
     "light_key": 1.0,   # key light intensity (grey level)

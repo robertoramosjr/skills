@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Seven Nd_Ag + 2 V_Ag configurations of Ag2CrO4 (222 atoms), vacancies marked by ghost atoms.
+"""Nd_Ag + 2 V_Ag configurations (set2: ten; --set old: the earlier seven) of Ag2CrO4 (222 atoms), vacancies marked by ghost atoms.
 
 Style = user's VESTA reference (Ag2CrO4/CONTCAR.eps, 2026-11-09): full structure, Ag grey, Cr navy,
 O red, Nd orange, half-coloured thin bonds, dashed black cell, white background, POV-Ray finish of
@@ -34,16 +34,28 @@ from render_structures import png_to_eps, _srgb_to_linear  # noqa: E402
 
 POVRAY = os.environ.get("POVRAY", os.path.expanduser("~/.conda/envs/render_env/bin/povray"))
 
-# folder -> label (publication notation; edit here only). Order = panel order.
-CONFIGS = [
-    ("Ag_T_N",      r"$2V_{\mathrm{Ag,TO1}}$"),
-    ("Ag_TeO_N",    r"$2V_{\mathrm{Ag,TO2}}$"),
-    ("Ag_TeO_NeF",  r"$2V_{\mathrm{Ag,TO3}}$"),
-    ("Ag_TeO_F",    r"$2V_{\mathrm{Ag,TO4}}$"),
-    ("Ag_O_N",      r"$2V_{\mathrm{Ag,OO1}}$"),
-    ("Ag_O_F",      r"$2V_{\mathrm{Ag,OO2}}$"),
-    ("Ag_T_F",      r"$2V_{\mathrm{Ag,TT}}$"),
-]
+# (key, CONTCAR path relative to --root, label); order = panel order. Edit labels here only.
+_L = lambda t: r"$2V_{\mathrm{Ag,%s}}$" % t
+CONFIG_SETS = {
+    # set2 (2026-11-15/17): site type x position relative to Nd (N first Ag shell, F beyond), d_VV 5.8-7.4 A.
+    # Gamma-relaxed geometries; the five low-spin ones re-relaxed with NUPDOWN=3 in <cfg>_M3/ (= E332 POSCAR).
+    "set2": [
+        ("TT_NN", "vacancies_set2/TT_NN_M3/CONTCAR", _L(r"TT\text{-}NN")),
+        ("TT_NF", "vacancies_set2/TT_NF_M3/CONTCAR", _L(r"TT\text{-}NF")),
+        ("TT_FF", "vacancies_set2/TT_FF_M3/CONTCAR", _L(r"TT\text{-}FF")),
+        ("TO_NN", "vacancies_compensation/Ag_T_N_OK/CONTCAR", _L(r"TO\text{-}NN")),
+        ("TO_NF", "vacancies_set2/TO_NF/CONTCAR", _L(r"TO\text{-}NF")),
+        ("TO_FN", "vacancies_set2/TO_FN/CONTCAR", _L(r"TO\text{-}FN")),
+        ("TO_FF", "vacancies_set2/TO_FF_M3/CONTCAR", _L(r"TO\text{-}FF")),
+        ("OO_NN", "vacancies_set2/OO_NN_M3/CONTCAR", _L(r"OO\text{-}NN")),
+        ("OO_NF", "vacancies_set2/OO_NF/CONTCAR", _L(r"OO\text{-}NF")),
+        ("OO_FF", "vacancies_set2/OO_FF_RELAX/CONTCAR", _L(r"OO\text{-}FF")),
+    ],
+    # earlier set of seven (Supplemental Tables S3/S5)
+    "old": [(n, f"vacancies_compensation/{n}_OK/CONTCAR", _L(t)) for n, t in [
+        ("Ag_T_N", "TO1"), ("Ag_TeO_N", "TO2"), ("Ag_TeO_NeF", "TO3"), ("Ag_TeO_F", "TO4"),
+        ("Ag_O_N", "OO1"), ("Ag_O_F", "OO2"), ("Ag_T_F", "TT")]],
+}
 # colours sampled from the reference render (sphere body); ghost/polyhedra sky blue (user, 2026-11-09)
 COL = {"Ag": "#C0C4C5", "Cr": "#2020A0", "O": "#F8211F", "Nd": "#F99A1F",
        "ghost": "#8FD3F4", "poly": "#F3E3B0", "edge": "#C8A24A"}   # cream polyhedra (user, 2026-11-09)
@@ -53,7 +65,9 @@ FRONT_SHIFT = 80.0   # A, see build_scene.F
 FACE_T = 0.50        # transparency of the polyhedron faces
 BOND_MAX = {("Ag", "O"): 2.75, ("Cr", "O"): 2.0, ("Nd", "O"): 2.8}
 IMG_TOL = 0.02   # fractional margin: atoms this close to a cell face are repeated on the opposite face
-FIN = ("finish { ambient 0.22 diffuse 0.78 specular 1.0 roughness 0.004 phong 1.0 phong_size 250 }")   # shiny (user, 2026-11-09)
+from povray_style import FIN, LIGHTS, key_sphere_pov  # noqa: E402  (shared billiard-ball finish, see povray_style.py)
+# Highlights need NON-shadowless lights (POV-Ray: shadowless lights give no specular/phong); shadows are removed per
+# object with no_shadow instead (no black half-moons, see crystal-defect-renders.md).
 TILT_V, TILT_U = 28.0, 14.0   # deg: view rotation about the vertical / horizontal screen axes
 
 
@@ -92,8 +106,8 @@ def to_screen(v, centre):
 
 
 # ------------------------------------------------------------------ data
-def analyse(root, name, parent):
-    a = ase.io.read(f"{root}/vacancies_compensation/{name}_OK/CONTCAR")
+def analyse(root, path, parent):
+    a = ase.io.read(f"{root}/{path}")
     cell = np.array(a.cell)
     s = np.array(a.get_chemical_symbols())
     ps = np.array(parent.get_chemical_symbols())
@@ -148,11 +162,11 @@ def V(p):
 
 
 def sph(p, r, tx):
-    return f"sphere {{ {V(p)}, {r:.4f} {tx} }}\n"
+    return f"sphere {{ {V(p)}, {r:.4f} {tx} no_shadow }}\n"
 
 
 def cyl(a, b, r, tx):
-    return f"cylinder {{ {V(a)}, {V(b)}, {r:.4f} {tx} }}\n"
+    return f"cylinder {{ {V(a)}, {V(b)}, {r:.4f} {tx} no_shadow }}\n"
 
 
 def tex(h):
@@ -215,7 +229,7 @@ def build_scene(d, centre, half_u, half_v):
         for f in faces:
             q = [fp[k][0] for k in f]
             s += (f"triangle {{ {V(q[0])}, {V(q[1])}, {V(q[2])} pigment {{ rgbt <{pc[0]:.3f},{pc[1]:.3f},{pc[2]:.3f},{FACE_T}> }} "
-                  f"finish {{ ambient 0.8 diffuse 0.2 }} }}\n")
+                  f"finish {{ ambient 0.8 diffuse 0.2 }} no_shadow }}\n")
         g, k = F(c, extra=4.0)      # ghost in front of the faces so the cream does not tint it
         s += sph(g, RAD["ghost"] * k, tex(COL["ghost"]))
     # dashed cell
@@ -230,8 +244,7 @@ def build_scene(d, centre, half_u, half_v):
     head = ["background { color rgb <1,1,1> }", "camera {", "  location <0,0,-1000>", "  look_at <0,0,0>",
             f"  angle {math.degrees(2 * math.atan(half_u / 1000)):.6f}",
             f"  right <{2 * half_u:.5f},0,0>", f"  up <0,{2 * half_v:.5f},0>", "}",
-            "light_source { <-250,250,-500> color rgb <1,1,1> shadowless }",
-            "light_source { <300,-150,-400> color rgb <0.25,0.25,0.25> shadowless }"]
+            *LIGHTS]
     return "\n".join(head) + "\n" + s
 
 
@@ -247,6 +260,14 @@ def render(pov, png, wpx, hpx):
         bg.save(png)
 
 
+def render_key_sphere(el, pdir, px=240):
+    """One sphere of the key, same finish/lights as the atoms of the panels (povray_style.key_sphere_pov)."""
+    pov, png = f"{pdir}/key_{el}.pov", f"{pdir}/key_{el}.png"
+    open(pov, "w").write(key_sphere_pov(rgb(COL[el])))
+    render(pov, png, px, px)
+    return png
+
+
 # ------------------------------------------------------------------ main
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -255,7 +276,8 @@ def main():
     ap.add_argument("--width-mm", type=float, default=178.0)
     ap.add_argument("--dpi", type=int, default=600)
     ap.add_argument("--ncol", type=int, default=3)
-    ap.add_argument("--only", help="comma list of folder names (test)")
+    ap.add_argument("--set", choices=sorted(CONFIG_SETS), default="set2")
+    ap.add_argument("--only", help="comma list of config keys (test)")
     a = ap.parse_args()
 
     parent = ase.io.read(f"{a.root}/CONTCAR")
@@ -270,20 +292,21 @@ def main():
     ncol = a.ncol
     cwpx = int(round(a.width_mm / ncol / 25.4 * a.dpi))
     chpx = int(round(cwpx * half_v / half_u))
+    CONFIGS = CONFIG_SETS[a.set]
     sel = CONFIGS if not a.only else [c for c in CONFIGS if c[0] in a.only.split(",")]
     nrow = math.ceil((len(sel) + 1) / ncol)
     ind = parent.get_chemical_symbols().index("Nd")
     rows = []
-    for name, lab in sel:
-        d = analyse(a.root, name, parent)
+    for name, path, lab in sel:
+        d = analyse(a.root, path, parent)
         pov, png = f"{pdir}/{name}.pov", f"{pdir}/{name}.png"
         open(pov, "w").write(build_scene(d, centre, half_u, half_v))
         render(pov, png, cwpx, chpx)
         dn = [np.linalg.norm(mic(g["pos"] - parent.positions[ind], cell)) for g in d["ghosts"]]
-        rows.append([name, lab, "+".join(g["site"] for g in d["ghosts"]), *["%.2f" % x for x in dn]])
+        rows.append([name, path, lab, "+".join(g["site"] for g in d["ghosts"]), *["%.2f" % x for x in dn]])
         print(name, [g["site"] for g in d["ghosts"]], ["%.2f" % x for x in dn])
     with open(a.out + ".csv", "w", newline="") as fh:
-        csv.writer(fh).writerows([["folder", "label", "sites", "d_Nd-ghost_1_A", "d_Nd-ghost_2_A"], *rows])
+        csv.writer(fh).writerows([["key", "contcar", "label", "sites", "d_Nd-ghost_1_A", "d_Nd-ghost_2_A"], *rows])
     compose(sel, pdir, a, cwpx, chpx, ncol, nrow)
 
 
@@ -298,13 +321,13 @@ def compose(sel, pdir, a, cwpx, chpx, ncol, nrow):
     hmm = wmm / ncol * chpx / cwpx * nrow
     fig = plt.figure(figsize=(wmm / 25.4, hmm / 25.4), dpi=a.dpi)
     box = dict(fc="white", ec="none", pad=1.0)
-    letters = "abcdefgh"
+    letters = "abcdefghijkl"
 
     def axes_at(k):
         r_, c_ = divmod(k, ncol)
         return fig.add_axes([c_ / ncol, 1 - (r_ + 1) / nrow, 1 / ncol, 1 / nrow])
 
-    for k, (name, lab) in enumerate(sel):
+    for k, (name, _, lab) in enumerate(sel):
         ax = axes_at(k)
         ax.imshow(np.asarray(Image.open(f"{pdir}/{name}.png").convert("RGB")), interpolation="none", aspect="auto")
         ax.axis("off")
@@ -316,15 +339,23 @@ def compose(sel, pdir, a, cwpx, chpx, ncol, nrow):
         ax.axis("off")
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
-        items = [(COL["Ag"], "Ag"), (COL["Cr"], "Cr"), (COL["O"], "O"), (COL["Nd"], "Nd"),
-                 (COL["ghost"], r"$V_{\mathrm{Ag}}$ (ghost atom)")]
-        for i, (c, t) in enumerate(items):
-            y = 0.86 - 0.12 * i
-            ax.scatter([0.06], [y], s=70, c=c, edgecolors="k", linewidths=0.4, zorder=3)
-            ax.text(0.11, y, t, va="center", ha="left")
-        ax.add_patch(plt.Rectangle((0.03, 0.20), 0.06, 0.07, fc=COL["poly"], ec=COL["poly"], alpha=0.5, lw=1.0))
-        ax.text(0.11, 0.235, "O polyhedron of the vacated site", va="center", ha="left")
-        ax.text(0.03, 0.08, "T: tetrahedron (Ag2), O: octahedron (Ag1)", va="center", ha="left")
+        items = [("Ag", "Ag"), ("Cr", "Cr"), ("O", "O"), ("Nd", "Nd"),
+                 ("ghost", r"$V_{\mathrm{Ag}}$ (ghost atom)")]
+        sw = 0.075                                        # sphere width (axes units); square in pixels
+        sh = sw * cwpx / chpx
+        for i, (el, t) in enumerate(items):
+            y = 0.81 - 0.105 * i
+            img = np.asarray(Image.open(render_key_sphere(el, pdir)).convert("RGB"))
+            ax.imshow(img, extent=[0.06 - sw / 2, 0.06 + sw / 2, y - sh / 2, y + sh / 2], aspect="auto",
+                      interpolation="bilinear", zorder=3)
+            ax.text(0.13, y, t, va="center", ha="left")
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.add_patch(plt.Rectangle((0.03, 0.2175), 0.06, 0.065, fc=COL["poly"], ec=COL["poly"], alpha=0.5, lw=1.0))
+        ax.text(0.13, 0.25, "O polyhedron of the vacated site", va="center", ha="left")
+        ax.text(0.03, 0.12, "T: tetrahedron (Ag2), O: octahedron (Ag1)", va="center", ha="left")
+        if a.set == "set2":
+            ax.text(0.03, 0.03, "N: first Ag shell of Nd, F: beyond it", va="center", ha="left")
         ax.text(0.01, 0.99, f"{letters[k]})", fontweight="bold", va="top", ha="left", bbox=box)
     png = a.out + ".png"
     fig.savefig(png, dpi=a.dpi)
