@@ -164,3 +164,9 @@ Nomes de pasta e de trabalho (`Ag_TeO_N1`, `Ag_O_F_OK`, `conf_03`, `top1`) **nã
 - **Rótulo único e estável:** definir o esquema (o que cada letra/índice significa, como o índice é ordenado) em uma frase no início de Resultados, apontando para a figura. Se o esquema mudar, mudar a macro e o mapa, nunca misturar os dois nomes no mesmo manuscrito.
 - Inserir a figura nova desloca a numeração: atualizar os "Fig. N" escritos à mão no Suplemento (o `\ref` não cruza arquivos) e conferir no PDF.
 - Exemplo real: Ag2CrO4:Nd, paper 2 (`Fig. 1` = `Figures/vacancy_configs.eps`, script `vasp_plot/scripts/plot_vacancy_configs.py`; mapa em `paper/plano_narrativo_paper2.md`).
+
+## Referências (.bib) — regras duras do Roberto (2026-11-18)
+1. **Arquivo único:** toda referência nova entra SEMPRE em `paper/bibliography/boxref_2026.bib`. Nunca criar outro `.bib` nem alterar `\bibliography{bibliography/jshort_2026,bibliography/boxref_2026}`.
+2. **Macros de periódico:** o campo `Journal` usa a macro de `bibliography/jshort_2026.bib` (`Journal = JPhysChemRefData`, `PhysRevB`, `JChemPhys`…), sem aspas e sem nome por extenso. `grep -n "@string" jshort_2026.bib` para achar; se não existir, acrescentar a macro em jshort.
+3. **DOI:** todo artigo leva `Doi = {…}`, verificado no Crossref (`curl -s "https://api.crossref.org/works/<doi>"` ou `query.bibliographic=`), nunca de memória. Sem DOI no Crossref (livros, monografias, suplementos antigos) → omitir o campo e dizer isso ao usuário; cuidado: DOI de *erratum* não é o do artigo.
+4. Formato: copiar uma entrada vizinha (`Title/Author/Journal/Year/Number/Pages/Volume/Doi`, `=` alinhado, autores `L. Wang and T. Maxisch`); chave `Sobrenome_pagina_ano`. Depois do build, conferir no PDF que a referência saiu no mesmo estilo das outras.
