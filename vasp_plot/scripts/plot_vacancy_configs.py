@@ -65,7 +65,7 @@ FRONT_SHIFT = 80.0   # A, see build_scene.F
 FACE_T = 0.50        # transparency of the polyhedron faces
 BOND_MAX = {("Ag", "O"): 2.75, ("Cr", "O"): 2.0, ("Nd", "O"): 2.8}
 IMG_TOL = 0.02   # fractional margin: atoms this close to a cell face are repeated on the opposite face
-FIN = ("finish { ambient 0.16 diffuse 0.72 specular 1.0 roughness 0.0015 phong 1.0 phong_size 70 }")   # polished billiard balls (user, 2026-11-17)
+from povray_style import FIN, LIGHTS, key_sphere_pov  # noqa: E402  (shared billiard-ball finish, see povray_style.py)
 # Highlights need NON-shadowless lights (POV-Ray: shadowless lights give no specular/phong); shadows are removed per
 # object with no_shadow instead (no black half-moons, see crystal-defect-renders.md).
 TILT_V, TILT_U = 28.0, 14.0   # deg: view rotation about the vertical / horizontal screen axes
@@ -244,8 +244,7 @@ def build_scene(d, centre, half_u, half_v):
     head = ["background { color rgb <1,1,1> }", "camera {", "  location <0,0,-1000>", "  look_at <0,0,0>",
             f"  angle {math.degrees(2 * math.atan(half_u / 1000)):.6f}",
             f"  right <{2 * half_u:.5f},0,0>", f"  up <0,{2 * half_v:.5f},0>", "}",
-            "light_source { <-250,250,-500> color rgb <1,1,1> }",
-            "light_source { <300,-150,-400> color rgb <0.25,0.25,0.25> }"]
+            *LIGHTS]
     return "\n".join(head) + "\n" + s
 
 
@@ -262,14 +261,9 @@ def render(pov, png, wpx, hpx):
 
 
 def render_key_sphere(el, pdir, px=240):
-    """One sphere of the key, same texture/finish/lights as the atoms of the panels (POV-Ray)."""
+    """One sphere of the key, same finish/lights as the atoms of the panels (povray_style.key_sphere_pov)."""
     pov, png = f"{pdir}/key_{el}.pov", f"{pdir}/key_{el}.png"
-    open(pov, "w").write("\n".join([
-        "background { color rgb <1,1,1> }", "camera {", "  location <0,0,-1000>", "  look_at <0,0,0>",
-        f"  angle {math.degrees(2 * math.atan(1.08 / 1000)):.6f}", "  right <2.16,0,0>", "  up <0,2.16,0>", "}",
-        "light_source { <-250,250,-500> color rgb <1,1,1> }",
-        "light_source { <300,-150,-400> color rgb <0.25,0.25,0.25> }",
-        sph(np.zeros(3), 1.0, tex(COL[el]))]))
+    open(pov, "w").write(key_sphere_pov(rgb(COL[el])))
     render(pov, png, px, px)
     return png
 

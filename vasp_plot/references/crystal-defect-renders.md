@@ -19,11 +19,12 @@ Caso de origem: Fig. 1 do paper 2 Ag2CrO4:Nd (`paper/Figures/vacancy_configs.eps
 - Ligações: cilindros bicolores (cada metade na cor do átomo), r = 0,07 Å, cortes Ag–O 2,75, Cr–O 2,0, Nd–O 2,8 Å. Célula tracejada preta (segmentos de 0,7 Å alternados), fundo branco.
 - **Cores entram em sRGB direto, SEM linearizar** (este POV-Ray não codifica gama na saída; medido: corpo renderizado = valor de entrada). Linearizar como no `render_structures.py` deixou tudo escuro e saturado.
 - **Sem sombras via `no_shadow` em cada objeto, NUNCA luz `shadowless`** (2026-11-17): luz `shadowless` do POV-Ray não gera realce especular/phong, então nenhum `finish` brilha (foi assim de 11-09 a 11-17). Sombras davam meias-luas pretas; `no_shadow` nos objetos as tira e mantém o realce. Luzes **à frente de todos os objetos** (z ≤ −500; os objetos da camada da frente ficam em z ≈ −80: luz atrás deles = esfera preta).
-- **Brilho de bola de bilhar polida** (usuário, 2026-11-17): `finish { ambient 0.16 diffuse 0.72 specular 1.0 roughness 0.0015 phong 1.0 phong_size 70 }` (ponto branco nítido + halo; 2º reflexo fraco da luz de preenchimento). `reflection` (com ou sem fresnel) deixa a superfície granulada: não usar.
+- **Brilho de bola de bilhar polida** (usuário, 2026-11-17; padrão de TODA figura de estrutura desde 11-18, valores em `scripts/povray_style.py`, importar de lá): `finish { ambient 0.16 diffuse 0.72 specular 1.0 roughness 0.0015 phong 1.0 phong_size 70 }` (ponto branco nítido + halo; 2º reflexo fraco da luz de preenchimento). `reflection` (com ou sem fresnel) deixa a superfície granulada: não usar.
 - **Camada da frente para poliedros e fantasmas:** átomos de Ag escondem o poliedro. Mover os objetos `FRONT_SHIFT`=80 Å em direção à câmera e **reescalar a parte lateral por (1000+w−Δ)/(1000+w)** (e os raios pelo mesmo fator) mantém a projeção idêntica e os põe por cima. O fantasma vai 4 Å mais à frente que as faces, senão as faces coloridas o tingem (azul sob creme virou verde).
 - Poliedro: arestas (cilindros r 0,055) + faces `triangle` com `rgbt` (transparência 0,5), vértices de `ConvexHull` (octaedro, 12 arestas) ou todas as 6 arestas (tetraedro). Cores: creme `#F3E3B0` (arestas `#C8A24A`), fantasma azul-céu `#8FD3F4` (pedidos do usuário).
 
 ## 3. Composição e saída
+- **Chave (legenda) de átomos = esferas renderizadas**, não círculos do matplotlib (usuário, 2026-11-18): `povray_style.key_sphere_pov(rgb)` → POV-Ray 240×240 px com o mesmo `FIN`/`LIGHTS`, colocada com `ax.imshow(img, extent=[x0,x1,y0,y1], aspect="auto")`; `y1−y0 = (x1−x0)·cwpx/chpx` para a esfera ficar redonda. Tamanho igual para todos os elementos (legibilidade). Deixar folga entre o rótulo `k)` e a 1ª esfera (a caixa branca do rótulo corta o topo dela) e entre o último item e o texto do poliedro.
 - Um PNG por painel (POV-Ray, `+A0.1 +UA`; alpha→branco depois), montagem em matplotlib: 178 mm, 3 colunas (2 colunas → 286 mm de altura, não cabe), rótulo `a)` em negrito no canto sup. esq. e o rótulo da configuração no sup. dir., ambos com fundo branco sólido; **o último painel é a legenda** (esferas coloridas + amostra do poliedro + frase T/O), 10 pt, serif.
 - Saída: `.png` 600 dpi e `.eps` com o PNG dentro (`png_to_eps` da `render_structures.py`, Flate), `.csv` com sítios e distâncias, `_panels/*.pov` (editáveis). Validar: `~/.conda/envs/writing_env/bin/gs -q -dSAFER -dBATCH -dNOPAUSE -sDEVICE=nullpage X.eps` (o login node não tem `gs` no PATH).
 
@@ -41,6 +42,7 @@ Caso de origem: Fig. 1 do paper 2 Ag2CrO4:Nd (`paper/Figures/vacancy_configs.eps
 | Meias-luas pretas nas esferas | sombras projetadas | `no_shadow` nos objetos (não `shadowless`) |
 | Esferas foscas, `finish` não muda nada | luz `shadowless` não faz especular | luz normal + `no_shadow` |
 | Poliedro/fantasma escondido por Ag | oclusão | camada da frente (§2) |
+| Todas as figuras vão para o fim do PDF | figura alta demais para `figure*[t]` (> 0,9·textheight) → float "stuck" bloqueia a fila | reduzir `width` no tex (0,88\textwidth p/ 4×3 painéis) ou `--ncol 4`; `grep "float is stuck"` no log |
 | Fantasma verde-acinzentado | faces coloridas sobre o fantasma | fantasma 4 Å mais à frente |
 | Vacância "extra" na borda da caixa | imagem periódica do fantasma | sem imagens para fantasmas |
 | Estrutura atulhada | raios errados | medir na referência (§0) |

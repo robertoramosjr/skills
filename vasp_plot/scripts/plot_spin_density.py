@@ -157,8 +157,7 @@ def scene(d, iso, tag, pdir, half_u, half_v):
             "camera {", "  location <0,0,-1000>", "  look_at <0,0,0>",
             f"  angle {math.degrees(2 * math.atan(half_u / 1000)):.6f}",
             f"  right <{2 * half_u:.5f},0,0>", f"  up <0,{2 * half_v:.5f},0>", "}",
-            "light_source { <-250,250,-500> color rgb <1,1,1> }",
-            "light_source { <300,-150,-400> color rgb <0.25,0.25,0.25> }"]
+            *pvc.LIGHTS]
     return "\n".join(head) + "\n" + s
 
 

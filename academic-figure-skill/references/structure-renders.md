@@ -24,7 +24,7 @@ Widths: print width of the journal column — 86 mm single structure / 178 mm gr
 
 - Bonds: cylinders r = 0.10 Å, split at mid-length, each half in its atom's colour; bonded if d < 1.2 × (sum of covalent radii).
 - White background, no axes, no labels on single structures.
-- Finish: `ambient 0.25 diffuse 0.75 specular 0.3 roughness 0.01 phong 0.9 phong_size 90`; key light 1.0 upper-left-front, fill light 0.25 shadowless. This gives the sharp white highlight of VESTA.
+- Finish (user, 2026-11-18): polished billiard balls, `ambient 0.16 diffuse 0.72 specular 1.0 roughness 0.0015 phong 1.0 phong_size 70`; key light 1.0 upper-left-front (NOT shadowless: shadowless lights give no highlight), fill light 0.25 shadowless. Same values as `~/skills/vasp_plot/scripts/povray_style.py` (single source); never add `reflection` (grainy). Legend keys = rendered spheres with this finish, not flat circles.
 - Colours sampled from a VESTA render; other elements: sample the same way (sphere body, away from the highlight).
 - **Cores fixadas pelo usuário (usar sempre):** Zr `#c68042` (198,128,66), O `#f8211f` (vermelho). Vacância de O adicionada: `#87cefa` (135,206,250), esfera quase opaca (transmit ≤ 0,15) + anel escuro; cinza claro some no meio da rede (2026-11-13). Referência de cristal com células/supercélulas dopadas: `~/work_cp2k/ZrO2/ZrO2:Y_Ryan/Figures/fases_zro2/make_fig_fases.py`.
 - Supercélula com defeito: escolher dopante/vacância só em sítios internos (fora das faces, senão aparecem repetidos como imagens) e medir vizinhança por distância DIRETA, não `get_distance` (imagem mínima junta átomos que na figura ficam longe).
