@@ -261,6 +261,19 @@ def render(pov, png, wpx, hpx):
         bg.save(png)
 
 
+def render_key_sphere(el, pdir, px=240):
+    """One sphere of the key, same texture/finish/lights as the atoms of the panels (POV-Ray)."""
+    pov, png = f"{pdir}/key_{el}.pov", f"{pdir}/key_{el}.png"
+    open(pov, "w").write("\n".join([
+        "background { color rgb <1,1,1> }", "camera {", "  location <0,0,-1000>", "  look_at <0,0,0>",
+        f"  angle {math.degrees(2 * math.atan(1.08 / 1000)):.6f}", "  right <2.16,0,0>", "  up <0,2.16,0>", "}",
+        "light_source { <-250,250,-500> color rgb <1,1,1> }",
+        "light_source { <300,-150,-400> color rgb <0.25,0.25,0.25> }",
+        sph(np.zeros(3), 1.0, tex(COL[el]))]))
+    render(pov, png, px, px)
+    return png
+
+
 # ------------------------------------------------------------------ main
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -332,17 +345,23 @@ def compose(sel, pdir, a, cwpx, chpx, ncol, nrow):
         ax.axis("off")
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
-        items = [(COL["Ag"], "Ag"), (COL["Cr"], "Cr"), (COL["O"], "O"), (COL["Nd"], "Nd"),
-                 (COL["ghost"], r"$V_{\mathrm{Ag}}$ (ghost atom)")]
-        for i, (c, t) in enumerate(items):
-            y = 0.88 - 0.11 * i
-            ax.scatter([0.06], [y], s=70, c=c, edgecolors="k", linewidths=0.4, zorder=3)
-            ax.text(0.11, y, t, va="center", ha="left")
-        ax.add_patch(plt.Rectangle((0.03, 0.2625), 0.06, 0.065, fc=COL["poly"], ec=COL["poly"], alpha=0.5, lw=1.0))
-        ax.text(0.11, 0.295, "O polyhedron of the vacated site", va="center", ha="left")
-        ax.text(0.03, 0.17, "T: tetrahedron (Ag2), O: octahedron (Ag1)", va="center", ha="left")
+        items = [("Ag", "Ag"), ("Cr", "Cr"), ("O", "O"), ("Nd", "Nd"),
+                 ("ghost", r"$V_{\mathrm{Ag}}$ (ghost atom)")]
+        sw = 0.075                                        # sphere width (axes units); square in pixels
+        sh = sw * cwpx / chpx
+        for i, (el, t) in enumerate(items):
+            y = 0.81 - 0.105 * i
+            img = np.asarray(Image.open(render_key_sphere(el, pdir)).convert("RGB"))
+            ax.imshow(img, extent=[0.06 - sw / 2, 0.06 + sw / 2, y - sh / 2, y + sh / 2], aspect="auto",
+                      interpolation="bilinear", zorder=3)
+            ax.text(0.13, y, t, va="center", ha="left")
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.add_patch(plt.Rectangle((0.03, 0.2175), 0.06, 0.065, fc=COL["poly"], ec=COL["poly"], alpha=0.5, lw=1.0))
+        ax.text(0.13, 0.25, "O polyhedron of the vacated site", va="center", ha="left")
+        ax.text(0.03, 0.12, "T: tetrahedron (Ag2), O: octahedron (Ag1)", va="center", ha="left")
         if a.set == "set2":
-            ax.text(0.03, 0.08, "N: first Ag shell of Nd, F: beyond it", va="center", ha="left")
+            ax.text(0.03, 0.03, "N: first Ag shell of Nd, F: beyond it", va="center", ha="left")
         ax.text(0.01, 0.99, f"{letters[k]})", fontweight="bold", va="top", ha="left", bbox=box)
     png = a.out + ".png"
     fig.savefig(png, dpi=a.dpi)
