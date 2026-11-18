@@ -93,3 +93,6 @@ Ao montar Nd2O3, Ag2O e Cr2O3 (referências de μ) o assistente escolheu malhas 
 
 ## CHGCAR editado à mão: preservar largura fixa dos campos (2026-11-18)
 Ao modificar um CHGCAR (ex.: inverter a magnetização), manter a largura de cada campo (grade E17.11, ocupações de augmentation E15.7). Reescrever com `' '.join` desalinha as colunas; o VASP 6.6 lê as ocupações em formato fixo, o rank de I/O cai num ramo de erro e o job TRAVA em deadlock MPI (239 ranks em `MPI_Bcast`, 1 em `MPI_Allreduce`) logo após "initial charge density was supplied", sem nenhum passo SCF. Conferir: mesmo nº de bytes e mesmo comprimento de linha do original. Script certo: `~/work_vasp/Ag2CrO4/tools/flip_chgcar_mag.py`. Caso: Ag2CrO4 E332v4 `1948216`.
+
+## Loop de relaxação ISIF=3 (2026-11-18)
+- Critério "DONE = 1 passo iônico + reached accuracy" em loop CONTCAR→POSCAR pode nunca fechar: célula oblíqua/shear mole alterna entre 2 celulas (Ag2Cr2O7 l=10, job 1943627: 18 runs, ~2 d, E alternando -146.396/-147.22 eV, V const, stress ~0.1 kB). Todo loop de restart deve ter limite de runs (ex.: ≤6) e/ou detectar E alternante → FAILED; olhar `grep -c 'F=' OSZICAR_*` e a energia por run antes de esperar.
