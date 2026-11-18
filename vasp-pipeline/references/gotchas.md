@@ -96,3 +96,5 @@ Ao modificar um CHGCAR (ex.: inverter a magnetização), manter a largura de cad
 
 ## Loop de relaxação ISIF=3 (2026-11-18)
 - Critério "DONE = 1 passo iônico + reached accuracy" em loop CONTCAR→POSCAR pode nunca fechar: célula oblíqua/shear mole alterna entre 2 celulas (Ag2Cr2O7 l=10, job 1943627: 18 runs, ~2 d, E alternando -146.396/-147.22 eV, V const, stress ~0.1 kB). Todo loop de restart deve ter limite de runs (ex.: ≤6) e/ou detectar E alternante → FAILED; olhar `grep -c 'F=' OSZICAR_*` e a energia por run antes de esperar.
+
+- (2026-11-18) ICHARG=1 com LCHARG=T: o CHGCAR de entrada é SOBRESCRITO pela rodada (mesmo falha). Guardar cópia do CHGCAR de entrada (ou usar outro nome/pasta) antes de reenviar; senão regenerar da fonte (ex.: E332v4/TO_NF 1948380 → reenviado 1948876). Mistura instável (rms(c) crescendo, ZHEGV em EDDRMM) em 1 config enquanto as irmãs convergem: baixar AMIX/AMIX_MAG antes de subir NELM.
