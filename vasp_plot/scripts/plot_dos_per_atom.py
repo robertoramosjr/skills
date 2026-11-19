@@ -14,12 +14,19 @@ old DOS_raw_data.csv); the raw DOSCAR (ISMEAR=0, SIGMA=0.01) is too spiky to rea
 Total-DOS scale check: the integrated TDOS at E_F must equal NELECT (OUTCAR). Six 222-atom DOSCARs of Ag2CrO4
 (VASP 6.6.0 build Apr 08 2026) have the TDOS block divided by exactly 800 (vasprun.xml is right, PDOS is right);
 the script rescales by NELECT/integral when they differ by >2 % and prints a warning.
+Builds of VASP 6.6.0 of Aug 19 2026 (NUPDOWN runs) double both the TDOS and the PDOS blocks; the PDOS is rescaled too
+whenever its integral to E_F exceeds NELECT. With NUPDOWN the single E_F of the header does not split the spin channels
+reliably: pass no flip flag there instead of ':auto', and use ':vbm' (or --zero vbm) to put the zero at the highest
+occupied state ('val. band max' of OUTCAR) instead of the DOSCAR E_F, which is the Fermi level of the spin channel
+printed last and can sit anywhere in that channel's gap; ':vbmmaj' (--zero vbmmaj) takes the highest occupied state of
+the majority channel from EIGENVAL, which stays at the top of the occupied 4f/host states when the other channel
+holds a partially filled band.
 Works for LORBIT=10 or 11 (up = even columns, down = odd columns of each atom block); an ISPIN=1 DOSCAR
 (non-magnetic reference, e.g. the pristine host) is drawn with half of each density in each channel.
 
 Usage:
-  plot_dos_per_atom.py --panel DIR:LABEL[:flip] [--panel ...] --out PREFIX [--xlim -4 4] [--ylim -11 11]
-                       [--width single|double] [--csv]
+  plot_dos_per_atom.py --panel DIR:LABEL[:flip|:auto][:vbm] [--panel ...] --out PREFIX [--xlim -4 4] [--ylim -11 11]
+                       [--width single|double] [--ncols N] [--csv]
 One panel per --panel, stacked vertically with shared x and y (same scale in every panel).
 --csv writes PREFIX_<n>.csv with the normalized curves of each panel (provenance of the figure).
 """
@@ -88,10 +95,45 @@ def broaden(e, y, sigma):
     return np.convolve(y, g / g.sum(), mode='same')
 
 
-def load_panel(folder, flip, sigma=0.0):
+def vbm_from_outcar(folder):
+    """Highest occupied eigenvalue ('val. band max' of the last OUTCAR gap summary, VASP >= 6.3)."""
+    v = [float(l.split()[3]) for l in open(os.path.join(folder, 'OUTCAR')) if 'val. band max' in l]
+    if not v:
+        raise ValueError(f'{folder}: no "val. band max" in OUTCAR; cannot use :vbm')
+    return v[-1]
+
+
+def vbm_channel_from_eigenval(folder, channel):
+    """Highest occupied eigenvalue (occupation > 0.5) of one spin channel (0 = VASP up, 1 = down) from EIGENVAL."""
+    with open(os.path.join(folder, 'EIGENVAL')) as f:
+        lines = f.read().split('\n')
+    nel, nk, nb = (int(x) for x in lines[5].split()[:3])
+    top, i = -1e9, 7
+    for _ in range(nk):
+        i += 1  # k-point line
+        for b in range(nb):
+            c = lines[i + b].split()
+            if len(c) < 5:
+                raise ValueError(f'{folder}: EIGENVAL is not spin-polarized')
+            if float(c[3 + channel]) > 0.5:
+                top = max(top, float(c[1 + channel]))
+        i += nb + 1
+    return top
+
+
+def load_panel(folder, flip, sigma=0.0, zero='efermi'):
     els, counts = species(folder)
     natoms, ef, tot, atoms = read_doscar(folder)
     assert natoms == sum(counts), f'{folder}: DOSCAR has {natoms} atoms, POSCAR {sum(counts)}'
+    if zero == 'vbmmaj':  # VBM of the channel plotted as majority (needs an explicit flip choice)
+        if flip == 'auto':
+            raise ValueError(':vbmmaj needs :flip or no flag, not :auto')
+        v = vbm_channel_from_eigenval(folder, 1 if flip else 0)
+        print(f'{folder}: zero = majority-channel VBM {v:.4f} eV (DOSCAR E_F {ef:.4f} eV)')
+        ef = v + 1e-4
+    if zero == 'vbm':  # NUPDOWN runs: one Fermi level per spin, the DOSCAR header keeps only the last printed one
+        print(f'{folder}: zero = VBM {vbm_from_outcar(folder):.4f} eV (DOSCAR E_F {ef:.4f} eV)')
+        ef = vbm_from_outcar(folder) + 1e-4
     e = tot[:, 0] - ef
     outcar = os.path.join(folder, 'OUTCAR')
     if os.path.isfile(outcar):
@@ -103,6 +145,13 @@ def load_panel(folder, flip, sigma=0.0):
             print(f'WARNING {folder}: DOSCAR TDOS integrates to {integ:.3f} at E_F, NELECT={nel[0]:.0f};'
                   f' rescaling TDOS by {r:.1f}', file=sys.stderr)
             tot[:, 1:3] *= r
+            # PDOS sits inside the PAW spheres, so its integral can never exceed NELECT; if it does, the same
+            # scale error hit the projected block (VASP 6.6.0 build Aug 19 2026, NUPDOWN runs: both blocks x2).
+            pint = sum(np.trapezoid(u[:i_ef + 1] + d[:i_ef + 1], tot[:i_ef + 1, 0]) for u, d in atoms)
+            if pint > 1.02 * nel[0]:
+                print(f'WARNING {folder}: PDOS integrates to {pint:.0f} > NELECT; rescaling PDOS by {r:.3f}',
+                      file=sys.stderr)
+                atoms = [(u * r, d * r) for u, d in atoms]
     up, dn = tot[:, 1] / natoms, tot[:, 2] / natoms
     pd, i = {}, 0
     for el, n in zip(els, counts):
@@ -144,6 +193,11 @@ def main(argv=None):
     ap.add_argument('--label-pos', choices=['ul', 'll'], default='ul', help='structure label: upper/lower left')
     ap.add_argument('--sigma', type=float, default=0.1, help='Gaussian broadening (std, eV); 0 = raw DOSCAR')
     ap.add_argument('--palette', choices=sorted(PALETTES), default='origin', help='line colours (default: Origin sequence)')
+    ap.add_argument('--zero', choices=['efermi', 'vbm', 'vbmmaj'], default='efermi',
+                    help="energy zero: DOSCAR E_F; highest occupied state from OUTCAR (vbm); or highest occupied state "
+                         "of the majority channel from EIGENVAL (vbmmaj). Also per panel ':vbm'/':vbmmaj'")
+    ap.add_argument('--xlabel', default=r'$E - E_\mathrm{F}$ (eV)', help='x-axis label (e.g. for --zero vbmmaj)')
+    ap.add_argument('--ncols', type=int, default=1, help='panels per row (filled row by row; >1 usually with --width double)')
     a = ap.parse_args(argv)
     global COLORS, FALLBACK
     COLORS, FALLBACK = PALETTES[a.palette]
@@ -155,15 +209,20 @@ def main(argv=None):
                          'xtick.direction': 'out', 'ytick.direction': 'out',
                          'pdf.fonttype': 42, 'ps.fonttype': 42})
     n = len(a.panel)
+    nc = max(1, a.ncols)
+    nr = -(-n // nc)
     w = COL_W if a.width == 'single' else FULL_W
-    fig, axs = plt.subplots(n, 1, figsize=(w, 0.45 + a.panel_height * n), sharex=True, sharey=True,
+    fig, axs = plt.subplots(nr, nc, figsize=(w, 0.45 + a.panel_height * nr), sharex=True, sharey=True,
                             constrained_layout=True, squeeze=False)
+    for ax in axs.flat[n:]:
+        ax.set_visible(False)
     ymax = 0.0
-    for k, (ax, spec) in enumerate(zip(axs[:, 0], a.panel)):
+    for k, (ax, spec) in enumerate(zip(axs.flat, a.panel)):
         parts = spec.split(':')
-        folder, label = parts[0], parts[1]
-        flip = {'flip': True, 'auto': 'auto'}.get(parts[2], False) if len(parts) > 2 else False
-        e, (tu, td), pd, flip = load_panel(folder, flip, a.sigma)
+        folder, label, opts = parts[0], parts[1], parts[2:]
+        flip = True if 'flip' in opts else ('auto' if 'auto' in opts else False)
+        zero = next((z for z in ('vbmmaj', 'vbm') if z in opts), a.zero)
+        e, (tu, td), pd, flip = load_panel(folder, flip, a.sigma, zero)
         print(f'{folder}: flip={flip}')
         win = (e >= a.xlim[0]) & (e <= a.xlim[1])
         ax.fill_between(e, 0, tu, color=TDOS_FILL, lw=0, label='Total')
@@ -182,9 +241,9 @@ def main(argv=None):
         else:
             ax.text(0.03, 0.05, label, transform=ax.transAxes, ha='left', va='bottom', bbox=BOX)
         if n > 1:
-            ax.text(-0.27 if n <= 3 else -0.2, 1.0, f'{chr(97 + k)})', transform=ax.transAxes, ha='left', va='top',
+            ax.text(-0.27 if nr <= 3 and nc == 1 else -0.2, 1.0, f'{chr(97 + k)})', transform=ax.transAxes, ha='left', va='top',
                     fontweight='bold')
-        if n <= 3:
+        if nr <= 3 and nc == 1:
             ax.set_ylabel('DOS (states/eV/atom)')
         if a.csv:
             cols = [e, tu, -td] + [x for el in pd for x in (pd[el][0], -pd[el][1])]
@@ -195,15 +254,20 @@ def main(argv=None):
     lim = a.ylim or (-1.1 * ymax, 1.1 * ymax)
     axs[0, 0].set_ylim(*lim)
     axs[0, 0].set_xlim(*a.xlim)
-    if n > 3:
+    if nr > 3 or nc > 1:
         fig.supylabel('DOS (states/eV/atom)', fontsize=10)
-    axs[-1, 0].set_xlabel(r'$E - E_\mathrm{F}$ (eV)')
+    if nc == 1:
+        axs[-1, 0].set_xlabel(a.xlabel)
+    else:
+        for k in range(n - nc, n):  # bottom visible panel of each column carries tick labels
+            axs.flat[k].xaxis.set_tick_params(labelbottom=True)
+        fig.supxlabel(a.xlabel, fontsize=10)
     if a.legend_loc == 'top':
-        h, lab = legend_entries(axs[:, 0])
+        h, lab = legend_entries(axs.flat[:n])
         fig.legend(h, lab, loc='outside upper center', ncol=len(lab), frameon=False, handlelength=1.2,
                    columnspacing=0.8)
     else:
-        h, lab = legend_entries(axs[:, 0])
+        h, lab = legend_entries(axs.flat[:n])
         axs[0, 0].legend(h, lab, loc=a.legend_loc, ncol=a.legend_ncol, frameon=False, handlelength=1.4,
                          columnspacing=1.0)
     save(fig, a.out)
