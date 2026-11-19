@@ -103,3 +103,8 @@ Ao modificar um CHGCAR (ex.: inverter a magnetização), manter a largura de cad
 
 - (2026-11-19) `NUPDOWN` fixo: o OUTCAR traz DOIS `Fermi energy:` (um por canal de spin, ordem NÃO confiável) e o `E-fermi`/DOSCAR é só um deles; dentro de um gap o E_F de cada canal é arbitrário. Para PDOS/gaps de células com M fixo referenciar ao VBM/CBM de cada canal (EIGENVAL, occ>0.5), nunca ao E_F do DOSCAR (Ag2CrO4:Nd, set2: E_F−VBM variou de −0,7 a +0,95 eV entre canais). Sem NUPDOWN (M livre, canal único) E_F≈VBM+0,045 eV vale.
 - (2026-11-19) Preparar relaxação a partir de CHGCAR de outra pasta: copiar de verdade (`cp`), nunca `ln` (hard link): o VASP regrava o CHGCAR no mesmo inode e destrói o arquivo de origem.
+
+## 2026-11-19 — Guardar o WAVECAR do SCF convergido; regenerar por ICHARG=11 (Ag2CrO4:Nd, set2 3×3×2)
+- Rodadas "estáticas" convergidas com `LWAVE=.FALSE.` (E332v4) deixaram só o CHGCAR; o relax seguinte (v5, ISTART=0 + NELMDL=−8) caiu em estado espúrio/sloshing (F 0,35 eV acima do estático convergido; 2 jobs × 4 h × 240 núcleos perdidos). Em SCF difícil (Nd-4f, ISPIN=2), **manter `LWAVE=.TRUE.` na etapa estática** que vai alimentar um relax.
+- Se o WAVECAR faltar: etapa não-SC barata (`ICHARG=11`, `ISTART=0`, `NSW=0`, `ALGO=Normal`, `LWAVE=.TRUE.`) sobre o CHGCAR convergido gera os autoestados em minutos; depois o relax com `ISTART=1`/`ICHARG=1`. WAVECAR de outra malha k (ex. Γ) não serve.
+- ALGO=Fast com BMIX=0,0001 (sem Kerker) é a única receita estável no set2, mas lenta (100–150 SCF); Normal/Kerker explodiu 4×. Teste do ALGO=All + WAVECAR: ver nota ag2cro4 (job 1950391).
