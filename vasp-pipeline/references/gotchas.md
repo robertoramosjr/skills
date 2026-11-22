@@ -114,3 +114,5 @@ Ao modificar um CHGCAR (ex.: inverter a magnetização), manter a largura de cad
 ## 2026-11-21 — STOPCAR/LABORT: o VASP apaga o STOPCAR ao parar
 - Job que resubmete "se STOPCAR existir" após `LSTOP`/`LABORT` nunca resubmete: o VASP imprime "deleting file STOPCAR". Usar arquivo-flag próprio (`touch STOPPED` junto do STOPCAR; testar `[ -f STOPPED ]`) — v7 1950944 saiu FAILED por isso (E332v7_relax/TT_NN).
 - SCF do primeiro passo iônico sem convergir não se resolve esperando: guard `>400 SCF sem "F=" no OSZICAR → FAILED` (1950944 gastou 17 h × 240 núcleos em 1034 SCF oscilando).
+
+- (2026-11-22) Guard de SCF precisa valer em TODO passo iônico, não só no 1º: contar DAV/RMM desde o último `F=` (`awk '/F=/{n=0} /^(DAV|RMM|DMP)/{n++} END{print n+0}' OSZICAR`, >400 → matar + FAILED). Com `! grep -q 'F='` o 6º passo do TT_NN (1951438) derivou 937 it. e queimou 20 h × 240 núcleos; o STOPCAR por tempo só é lido no fim do passo iônico, então não salva SCF preso.
