@@ -56,3 +56,8 @@ Ag2SeO3 B3LYP k333: E = −11683,685146661 Ha, gap indireto 3,9135 eV (última l
 - Causa: as posições padronizadas do spglib estão no **1º setting**; sem IFSO o CRYSTAL as lê no 2º.
 - Correção: `IFSO=1` no cabeçalho (`0 0 1`). Resultado: 6 átomos na primitiva, 3,857 g/cm³, distâncias idênticas ao POSCAR (Δ 1e-9 Å). Aplicado no `cry_symm.py` (`TWO_ORIGIN_SETTINGS`, parâmetro `ifso`); o `--verify` deve dar `OK` antes de qualquer job.
 - Diagnóstico barato: célula P1 da primitiva (6 átomos) e convencional (12) devem dar 3,857 g/cm³; se der outro valor, o problema é o grupo/origem.
+
+## SHRINK em rede de corpo centrado (I) — verificado 2026-11-23 (TiO2 anatase, I4₁/amd)
+- A primitiva do CRYSTAL para a rede I tem a1=(-a/2,a/2,c/2), a2=(a/2,-a/2,c/2), a3=(a/2,a/2,-c/2): a C4 leva a1→-a3, então **IS1 = IS2 = IS3 é obrigatório**, mesmo com |b3| ≠ |b1| (0,374 × 0,284 Å⁻¹). Malha anisotrópica (3 3 2 da célula convencional, ou 3 3 4 da regra Auto na primitiva) → `ANISOTROPIC SHRINKING FACTOR NOT COMPATIBLE WITH SYMMETRY: DIRECTION 3 AND DIRECTION 1 MUST BE EQUAL` + `ERROR **** CAPPA **** SHRINK BREAKS SYMMETRY` em 0,05 s (job 901, 9 malhas). `NOSYMADA` não resolve.
+- Correção: malha isotrópica N×N×N com N = max_i int(l·|b_i|+0,5) (nunca menos densa que o Auto do VASP); 4×4×4 → 13 k na IBZ, TESTPDIM OK.
+- Teste rápido de SHRINK no login: `TESTPDIM` no bloco SCF (segundos). O `crystalOMP` fora do job precisa de `LD_LIBRARY_PATH=/opt/intel/oneapi/compiler/2026.2/lib` (libiomp5.so).
