@@ -28,6 +28,7 @@ Added on access:
 - On **access** the launcher is MPICH `mpiexec -n $SLURM_NTASKS -bind-to core:$OMP_NUM_THREADS` (NOT `srun --mpi=pmix`;
   cp2k/2026.1 is linked to its own toolchain MPICH 4.3.2). Queues `short/medium/long` DO exist here; `teste` does not.
 - Multi-node works on access (2026-11-23, jobs 5345025*): same script + `sbatch -N 2` (header 14×2 per node) -> `hydra_pmi_proxy` step on both nodes, CP2K `Total number of message passing processes 28`. Nodes = 2×14 physical cores (HT, 56 CPUs), 126 GB; a 14×2 job takes half a node. `.kp`/`.restart` from a 1-node run resume fine on 2 nodes.
+- Queue tip (access, 2026-11-23): nodes are almost always `mix`; the limit is free *allocatable* memory per node (RealMemory−AllocMem; check `scontrol show node -o`), not CPUs. Small per-node chunks start at once: `-N 4 --ntasks-per-node=6 --cpus-per-task=2 --mem-per-cpu=1800M` (24 ranks, 12 logical CPUs/21.6 GB per node) entered immediately while `-N 2` 14×2 waited (job 5345036). User allows HT threads and up to 4 nodes.
 - The user's rule (cofre): report cost BEFORE submitting; nothing heavy on the login node (a 2-rank, few-minute test is ok).
 - pymatgen gotchas for surfaces: `Slab.is_polar()` needs oxidation states; `SlabGenerator` and `Slab(...)` rotate the lattice
   unless `reorient_lattice=False`; `--planes -1,1,1` is eaten by argparse (use `--planes="-1,1,1;..."`).
