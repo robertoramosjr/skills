@@ -91,6 +91,10 @@ def main():
     nel, nao, kscf, spin, atoms = parse_scf(a.scf_out)
     homo = nel // 2 if not spin else (nel + 1) // 2  # spin: rough window centre; check alpha/beta HOMO in output
     inzb, ifnb = max(1, homo - a.bands_below), min(nao, homo + a.bands_above)
+    if inzb == 1:
+        print("WARNING: band window starts at band 1: with an all-electron basis (no ECP) this includes core "
+              "levels and the 6001-point DOS grid becomes useless (TiO2: 818 meV step). "
+              "Use --bands-below to start at the valence/semicore (TiO2 pob-TZVP-rev2: 16).")
     d3 = []
     if a.what in ("bands", "both"):
         if not (a.kpath_file or a.path or a.path_frac):

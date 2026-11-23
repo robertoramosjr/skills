@@ -61,3 +61,13 @@ Ag2SeO3 B3LYP k333: E = −11683,685146661 Ha, gap indireto 3,9135 eV (última l
 - A primitiva do CRYSTAL para a rede I tem a1=(-a/2,a/2,c/2), a2=(a/2,-a/2,c/2), a3=(a/2,a/2,-c/2): a C4 leva a1→-a3, então **IS1 = IS2 = IS3 é obrigatório**, mesmo com |b3| ≠ |b1| (0,374 × 0,284 Å⁻¹). Malha anisotrópica (3 3 2 da célula convencional, ou 3 3 4 da regra Auto na primitiva) → `ANISOTROPIC SHRINKING FACTOR NOT COMPATIBLE WITH SYMMETRY: DIRECTION 3 AND DIRECTION 1 MUST BE EQUAL` + `ERROR **** CAPPA **** SHRINK BREAKS SYMMETRY` em 0,05 s (job 901, 9 malhas). `NOSYMADA` não resolve.
 - Correção: malha isotrópica N×N×N com N = max_i int(l·|b_i|+0,5) (nunca menos densa que o Auto do VASP); 4×4×4 → 13 k na IBZ, TESTPDIM OK.
 - Teste rápido de SHRINK no login: `TESTPDIM` no bloco SCF (segundos). O `crystalOMP` fora do job precisa de `LD_LIBRARY_PATH=/opt/intel/oneapi/compiler/2026.2/lib` (libiomp5.so).
+
+## Slabs com SLABCUT — verificado 2026-11-23 (TiO2 anatase HSE06, `cry_slab.py`)
+- Índices de Miller do `SLABCUT`/`SLABINFO` = célula **convencional** também na rede I tetragonal (área (101) 19,346 Å², (001) = a² 14,203 Å², (110) = a√2·c/2 25,45 Å² porque o vetor de centragem (½,−½,½) fica no plano).
+- `SLABINFO` + `TESTGEOM` lista as camadas de um período (z decrescente; camada 1 = topo); o `SLABCUT` corta NL camadas a partir de ISUP descendo. Cada `TESTGEOM` leva ~0,05 s: 7 planos × todos os cortes estequiométricos até 20 Å = 20 s no login.
+- Simetria entre faces lida da lista `SYMMOPS` do slab gerado: existe operação com R33 = −1 (inversão, espelho no plano, C2 no plano). Ex. (101) ISUP 1 NL 18: 2 ops, ambas z→+z → assimétrico (O em cima, Ti embaixo), embora estequiométrico.
+- Ligações quebradas/Å² por face (Ti–O < 2,3 Å, CN bulk 6) reproduzem a ordem de γ de Lazzeri 2001: (101) 0,0517 < (100) 0,0556 < (112) 0,0686 < (001) 0,0704 ≈ (103) 0,0717 < (110) 0,0786.
+- (111) da anatase: camadas a ~0,2 Å e área 52,8 Å²; o corte mais fino (NL 3, 3 átomos) aparece como "terminação" própria — artefato de monocamada, ignorar.
+
+## DOSS com base all-electron — verificado 2026-11-23 (TiO2, pob-TZVP-rev2 interna, Ti sem ECP)
+- `cry_props.py` com o default `--bands-below 40` e HOMO 38 começou a janela na banda 1 (Ti 1s, ~−180 Ha): `DOSS.DAT` com passo de 818 meV, inútil. Com `--bands-below 16` (janela 22–78: Ti 3p até a condução) o passo cai para 13 meV (−35 a +43 eV). O script agora avisa quando a janela começa na banda 1. Ag2SeO3 (Ag com ECP) não foi afetado (janela 152–232).

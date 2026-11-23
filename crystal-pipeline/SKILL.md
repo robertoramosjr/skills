@@ -52,6 +52,7 @@ CRYSTAL (LCAO, Gaussianas) entrou para fazer **bandas/DOS com funcional híbrido
 | `cry_kpath.py` *(render_env)* | caminho Setyawan–Curtarolo (pymatgen) na base do CRYSTAL → `KPATH_CRYSTAL` |
 | `cry_props.py` | `PROPS` (BAND → NEWK → DOSS) a partir do `crystal.out` (+ `--kpath-file`) |
 | `cry_parse.py` | `check`, `kconv` (CSV estilo VASP), `opt`, `dos` (→ `DOS_raw_data.csv`), `bands` (→ `bands.csv`, `bands_ticks.csv`, VBM/CBM/gap com rótulo) |
+| `cry_slab.py` | slabs com o `SLABCUT` nativo (2D, sem vácuo): `SLABINFO` → todo (ISUP, NL) estequiométrico até `--max-thick` → `TESTGEOM` → mantém só os simétricos (op. z→−z no grupo de camada) → ordena por ligações quebradas/Å²; `slabs.csv` + `<hkl>_t<term>_nl<NL>/{GEOM.d12-part,slab.xyz}` |
 | `job_crystal.sh` | `sbatch job_crystal.sh DIR [DIR…]` ou pasta-mãe (kconv), `--props DIR`; sequencial, pula convergidas, restart de OPTGEOM (`RESTART` + `OPTINFO.DAT` + `fort.9→fort.20`, testado), corta 20 min antes do fim e se ressubmete; `LAYOUT=omp|hybrid|mpi` |
 
 *(render_env)* = `~/micromamba/envs/render_env/bin/python` (pymatgen 2026.9.24, spglib 2.8.0); os demais rodam no `python3` do sistema.
