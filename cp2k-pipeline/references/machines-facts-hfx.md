@@ -27,6 +27,7 @@ From coaraci (verbatim; machine-specific items marked where access differs):
 Added on access:
 - On **access** the launcher is MPICH `mpiexec -n $SLURM_NTASKS -bind-to core:$OMP_NUM_THREADS` (NOT `srun --mpi=pmix`;
   cp2k/2026.1 is linked to its own toolchain MPICH 4.3.2). Queues `short/medium/long` DO exist here; `teste` does not.
+- Multi-node works on access (2026-11-23, jobs 5345025*): same script + `sbatch -N 2` (header 14×2 per node) -> `hydra_pmi_proxy` step on both nodes, CP2K `Total number of message passing processes 28`. Nodes = 2×14 physical cores (HT, 56 CPUs), 126 GB; a 14×2 job takes half a node. `.kp`/`.restart` from a 1-node run resume fine on 2 nodes.
 - The user's rule (cofre): report cost BEFORE submitting; nothing heavy on the login node (a 2-rank, few-minute test is ok).
 - pymatgen gotchas for surfaces: `Slab.is_polar()` needs oxidation states; `SlabGenerator` and `Slab(...)` rotate the lattice
   unless `reorient_lattice=False`; `--planes -1,1,1` is eaten by argparse (use `--planes="-1,1,1;..."`).
