@@ -116,3 +116,8 @@ Ao modificar um CHGCAR (ex.: inverter a magnetização), manter a largura de cad
 - SCF do primeiro passo iônico sem convergir não se resolve esperando: guard `>400 SCF sem "F=" no OSZICAR → FAILED` (1950944 gastou 17 h × 240 núcleos em 1034 SCF oscilando).
 
 - (2026-11-22) Guard de SCF precisa valer em TODO passo iônico, não só no 1º: contar DAV/RMM desde o último `F=` (`awk '/F=/{n=0} /^(DAV|RMM|DMP)/{n++} END{print n+0}' OSZICAR`, >400 → matar + FAILED). Com `! grep -q 'F='` o 6º passo do TT_NN (1951438) derivou 937 it. e queimou 20 h × 240 núcleos; o STOPCAR por tempo só é lido no fim do passo iônico, então não salva SCF preso.
+
+## EDWAV rot.F:874 provavelmente é do BUILD, não do ALGO=All (2026-11-24, coaraci)
+- `vasp660/bin/vasp_std` (grupo lcabral) foi REGRAVADO em 2026-08-19 (cabeçalho: `build Aug 19 2026 13:19:26`; o de `Apr 08 2026` sumiu). 21 runs ALGO=All de 05–08/2026 (build abril, incl. do zero em 112 at.) sem EDWAV; build agosto: 24/24 tentativas de nov. com EDWAV (222 at. Nd). `ldd`: o novo linka `libblas/liblapack.so.3` 3.12.0 e `libscalapack.so` de `/home/sw/netlib/intelmpi-2021.9` (ref. netlib, 19/08 12:38), não MKL. Conferir sempre `head -1 OUTCAR` ao comparar runs.
+- `/home/sw/vasp/6.5.0-intel/bin/vasp_std` não é módulo e exige `libscalapack.so.2` inexistente: shim `ln -s $MKLROOT/lib/intel64/libmkl_scalapack_lp64.so.2 shim/libscalapack.so.2` + `LD_PRELOAD=libmkl_blacs_intelmpi_lp64.so.2`. Canário: job 1958409.
+- Harpia (`modmat/vasp/6.6.1-intel`): nó único 128 CPU/118 GB, ver cofre running_jobs.
