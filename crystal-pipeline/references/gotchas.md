@@ -71,3 +71,8 @@ Ag2SeO3 B3LYP k333: E = −11683,685146661 Ha, gap indireto 3,9135 eV (última l
 
 ## DOSS com base all-electron — verificado 2026-11-23 (TiO2, pob-TZVP-rev2 interna, Ti sem ECP)
 - `cry_props.py` com o default `--bands-below 40` e HOMO 38 começou a janela na banda 1 (Ti 1s, ~−180 Ha): `DOSS.DAT` com passo de 818 meV, inútil. Com `--bands-below 16` (janela 22–78: Ti 3p até a condução) o passo cai para 13 meV (−35 a +43 eV). O script agora avisa quando a janela começa na banda 1. Ag2SeO3 (Ag com ECP) não foi afetado (janela 152–232).
+
+## FINALRUN que diverge depois da otimização convergida — verificado 2026-11-24 (TiO2 (001) slab NL 18, HSE06, ATOMONLY)
+- A otimização imprimiu `CONVERGENCE TESTS SATISFIED AFTER 5 ...`, mas o ponto seguinte (FINALRUN 4: reclassificação das integrais na geometria final) teve SCF divergente (DIIS test ~5e3 por 188 ciclos, `NaN`, `forrtl severe (174) SIGSEGV`). `fort.9` ficou com 0 B: o RESTART padrão não serve.
+- Não confundir: em run `EXTERNAL`, o `fort.34` da pasta é a geometria de ENTRADA (bulk) até a otimização convergir; ter um `fort.34` não prova convergência.
+- Recuperação barata sem trocar parâmetros: mesmo INPUT + `KEEPSYMM` + `ATOMDISP` (antes de `OPTGEOM`) com Δ = coord. do último ponto convergido − coord. inicial dos átomos da unidade assimétrica (Å; ler os dois blocos do `crystal.out`). Conferir com `TESTGEOM` (geometria e nº de SYMMOPS) antes de submeter. Um ATOMONLY partindo dali refaz a classificação e o SCF começa do zero (guess atômico).
